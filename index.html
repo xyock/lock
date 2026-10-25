@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>xyock</title>
+
+  <link rel="icon" href="/x/favicon/favicon.ico?v=1" sizes="any" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/x/favicon/favicon-96x96.png?v=1" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/x/favicon/apple-touch-icon.png?v=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="xyock" />
+  <link rel="manifest" href="/x/favicon/site.webmanifest?v=1" />
+  <meta name="theme-color" content="#0a0a0a" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0a;
+      --panel: #141414;
+      --line: #2a2a2a;
+      --text: #e0e0e0;
+      --muted: #888;
+      --accent: #7ae5b3;
+      --error: #ff9a9a;
+      --hdr: 86px;
+      --pad: 50px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px var(--pad);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+      height: var(--hdr);
+    }
+    .logo {
+      font-size: 1.5em;
+      font-weight: 300;
+      letter-spacing: 2px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.35em;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .logo-img {
+      display: block;
+      width: 56px;
+      height: 56px;
+      max-width: 56px;
+      max-height: 56px;
+      flex-shrink: 0;
+      object-fit: contain;
+    }
+    .menu-btn {
+      background: transparent;
+      border: 2px solid var(--line);
+      color: var(--muted);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.2em;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .menu-btn:hover { border-color: #555; color: #ccc; }
+    .menu {
+      position: absolute;
+      top: calc(var(--hdr) + 8px);
+      right: var(--pad);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-width: 200px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 200;
+    }
+    .menu.show { display: block; }
+    .menu-item {
+      display: block;
+      width: 100%;
+      padding: 14px 18px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      font-size: 1em;
+      border-bottom: 1px solid #222;
+      transition: background 0.2s ease;
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item:hover { background: rgba(255, 255, 255, 0.06); }
+    .menu-item.login { color: var(--accent); }
+    .main {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - var(--hdr));
+      min-height: calc(100dvh - var(--hdr));
+    }
+    .video-section {
+      position: relative;
+      width: 100%;
+      height: calc(100dvh - var(--hdr) - 40px);
+      overflow: hidden;
+      padding: 20px 0;
+      flex-shrink: 0;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+    .footer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      padding: 20px var(--pad);
+      border-top: 1px solid var(--line);
+      margin-top: auto;
+      background: var(--bg);
+    }
+    .footer-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.95em;
+      transition: color 0.2s ease;
+    }
+    .footer-link:hover { color: var(--accent); }
+    .footer-icon { width: 24px; height: 24px; display: block; }
+    .section-content {
+      display: none;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+      margin-top: 8px;
+      font-size: 0.95em;
+      line-height: 1.6;
+      color: var(--text);
+    }
+    .section-content.show { display: block; }
+    .section-toggle {
+      width: 100%;
+      padding: 12px 16px;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+    .section-toggle:hover { border-color: #555; background: rgba(255, 255, 255, 0.02); }
+    .section-toggle.active { border-color: var(--accent); background: rgba(122, 229, 179, 0.08); }
+    .section-toggle::after {
+      content: "▼";
+      display: inline-block;
+      transform: rotate(-90deg);
+      transition: transform 0.3s ease;
+    }
+    .section-toggle.active::after { transform: rotate(0deg); }
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal.show { display: flex; }
+    .modal-content {
+      background: var(--panel);
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 36px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+    .modal-title {
+      font-size: 1.8em;
+      font-weight: 300;
+      margin-bottom: 28px;
+      text-align: center;
+      color: #fff;
+      letter-spacing: 1px;
+    }
+    .modal-input {
+      width: 100%;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      font-size: 1em;
+      background: transparent;
+      border: 2px solid #333;
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      transition: border-color 0.2s ease;
+    }
+    .modal-input::placeholder { color: #666; }
+    .modal-input:focus { outline: none; border-color: #555; }
+    .modal-error {
+      min-height: 1.2em;
+      margin-bottom: 16px;
+      color: var(--error);
+      font-size: 0.9em;
+      text-align: center;
+    }
+    .modal-buttons { display: flex; gap: 12px; justify-content: center; }
+    .modal-btn {
+      padding: 11px 26px;
+      border: 2px solid #333;
+      background: transparent;
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .modal-btn:hover { border-color: #555; background: rgba(255, 255, 255, 0.04); }
+    .modal-btn.primary { border-color: #2d6d4f; color: #a8d5ba; }
+    .modal-btn.primary:hover { background: rgba(45, 109, 79, 0.2); }
+    .editor-container {
+      padding: 0;
+      display: none;
+      flex-direction: column;
+      height: calc(100dvh - var(--hdr));
+      width: 100%;
+      background: var(--bg);
+    }
+    .editor-container.show { display: flex; }
+    .editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px var(--pad);
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .editor-title {
+      font-size: 1.2em;
+      font-weight: 300;
+      letter-spacing: 1px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+    .editor-title img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+    .editor-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .editor-btn {
+      padding: 8px 14px;
+      border: 2px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: all 0.2s ease;
+    }
+    .editor-btn:hover { border-color: #555; color: #ccc; }
+    .editor-btn.run { border-color: var(--accent); color: var(--accent); }
+    .editor-btn.run:hover { background: rgba(122, 229, 179, 0.1); }
+    .editor-content {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+      overflow: hidden;
+      padding: 12px;
+    }
+    .code-panel, .output-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .panel-label {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.85em;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    textarea {
+      flex: 1;
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: "Courier New", monospace;
+      font-size: 0.95em;
+      line-height: 1.6;
+      resize: none;
+    }
+    .output-content {
+      flex: 1;
+      padding: 12px 16px;
+      overflow-y: auto;
+      font-family: "Courier New", monospace;
+      font-size: 0.9em;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--accent);
+    }
+    .output-content.empty { color: var(--muted); }
+    .toast {
+      position: fixed;
+      top: calc(var(--hdr) + 16px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f0f0f;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 14px 22px;
+      border-radius: 8px;
+      font-size: 0.95em;
+      z-index: 3000;
+      display: none;
+      max-width: 90%;
+      text-align: center;
+    }
+    .toast.show { display: block; }
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    @media (max-width: 768px) {
+      :root { --hdr: 78px; --pad: 25px; }
+      .editor-content { flex-direction: column; gap: 8px; }
+      .code-panel, .output-panel { min-height: 200px; }
+    }
+    @media (max-width: 480px) {
+      :root { --hdr: 70px; --pad: 15px; }
+      .logo { font-size: 1.2em; }
+      .logo-img { width: 44px; height: 44px; }
+      .menu { right: var(--pad); }
+      .footer { gap: 20px; padding: 16px var(--pad); }
+      .editor-title img { width: 36px; height: 36px; }
+      .editor-btn { padding: 6px 10px; font-size: 0.8em; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" id="homeLink" title="새로고침"><img class="logo-img" src="logo.png" alt="" />xyock</div>
+    <button class="menu-btn" id="menuBtn" type="button" title="메뉴">☰</button>
+    <div class="menu" id="menu">
+      <button class="menu-item" id="dictBtn" type="button">Dictionary</button>
+      <button class="menu-item" id="editorBtn" type="button">Code Editor</button>
+      <button class="menu-item login" id="loginBtn" type="button">Login</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div id="homePage" class="show">
+      <div class="video-section">
+        <video src="intro.mp4" autoplay muted loop playsinline></video>
+      </div>
+
+      <div class="footer">
+        <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="footer-link" title="GitHub">
+          <svg class="footer-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.868-.013-1.703-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.544 2.914 1.186.092-.923.35-1.544.636-1.9-2.22-.252-4.555-1.111-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+          </svg>
+          made by GitHub
+        </a>
+        <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" class="footer-link" title="Supabase">
+          <svg class="footer-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.5 0C8 0 5 2.5 5 5.5V12H11.5V0Z" fill="#3FCF8E"/><path d="M11.5 0C8 0 5 2.5 5 5.5V12H18V6C18 2.5 15 0 11.5 0Z" fill="#3FCF8E" opacity="0.5"/><path d="M5 12V18.5C5 22 8 24 11.5 24C15 24 18 21.5 18 18.5V12H5Z" fill="#3FCF8E"/><path d="M18 12V18.5C18 22 15 24 11.5 24C15 24 18 21.5 18 18.5V12Z" fill="#3FCF8E" opacity="0.3"/>
+          </svg>
+          powered by Supabase
+        </a>
+      </div>
+    </div>
+
+    <div id="editorContainer" class="editor-container">
+      <div class="editor-header">
+        <div class="editor-title"><img src="logo.png" alt="" />Code Editor</div>
+        <div class="editor-actions">
+          <button class="editor-btn run" id="runBtn" type="button">Run Python</button>
+          <button class="editor-btn" id="clearBtn" type="button">Clear</button>
+        </div>
+      </div>
+      <div class="editor-content">
+        <div class="code-panel">
+          <div class="panel-label">Code</div>
+          <textarea id="codeInput" spellcheck="false" placeholder="# Write your Python code here..."></textarea>
+        </div>
+        <div class="output-panel">
+          <div class="panel-label">Output</div>
+          <div class="output-content empty" id="output">Ready to run...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <div class="modal-title">Login</div>
+      <input id="loginEmail" type="text" class="modal-input" placeholder="Email" autocomplete="username" maxlength="200" />
+      <input id="loginPassword" type="password" class="modal-input" placeholder="Password" autocomplete="current-password" maxlength="100" />
+      <div class="modal-error" id="loginError"></div>
+      <div class="modal-buttons">
+        <button class="modal-btn primary" id="loginSubmit" type="button">Login</button>
+        <button class="modal-btn" id="loginCancel" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+  <script>
+    const SUPABASE_URL = "https://lhbdijxjnqbzmrvrvrkr.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_e3oKyICzmGvyx1FFcO1dMQ_39veE0G4";
+    const AUTH_URL = `${SUPABASE_URL}/auth/v1`;
+    const FN_URL = `${SUPABASE_URL}/functions/v1`;
+    const SESSION_KEY = "lockai_session";
+    const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
+    const LOGIN_POLL_MS = 3000;
+    const LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
+
+    let lastActivity = Date.now();
+    let session = loadSession();
+    let pyodideReady = false;
+
+    function sanitize(text) {
+      return String(text).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3500);
+    }
+
+    function loadSession() {
+      try {
+        const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+        return s && s.access_token && s.refresh_token && s.user_id ? s : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveSession(s) {
+      session = s;
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    }
+
+    function clearSession() {
+      session = null;
+      localStorage.removeItem(SESSION_KEY);
+    }
+
+    function isLoggedIn() {
+      return !!session;
+    }
+
+    async function postAuth(grantType, body) {
+      const res = await fetch(`${AUTH_URL}/token?grant_type=${grantType}`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    function toSession(data, fallbackEmail, previous = null) {
+      return {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: Math.floor(Date.now() / 1000) + (Number(data.expires_in) || 3600),
+        email: (data.user?.email || previous?.email || fallbackEmail || "").toLowerCase(),
+        user_id: data.user?.id || previous?.user_id || "",
+        is_pro: previous?.is_pro === true
+      };
+    }
+
+    async function ensureSession() {
+      if (!session) return false;
+      if (session.expires_at - 60 > Math.floor(Date.now() / 1000)) return true;
+      try {
+        const data = await postAuth("refresh_token", { refresh_token: session.refresh_token });
+        saveSession(toSession(data, session.email, session));
+        return true;
+      } catch {
+        clearSession();
+        return false;
+      }
+    }
+
+    async function login(email, password) {
+      const headers = { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" };
+
+      const res = await fetch(`${FN_URL}/request-login`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ email, password })
+      });
+      if (res.status === 401) throw new Error("invalid");
+      if (!res.ok) throw new Error(`request-login HTTP ${res.status}`);
+      const { request_id, poll_token } = await res.json();
+
+      const deadline = Date.now() + LOGIN_TIMEOUT_MS;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, LOGIN_POLL_MS));
+        const r2 = await fetch(`${FN_URL}/check-login`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ request_id, poll_token })
+        });
+        if (!r2.ok) throw new Error(`check-login HTTP ${r2.status}`);
+        const d = await r2.json().catch(() => ({}));
+        if (d.status === "approved") {
+          saveSession(toSession({
+            access_token: d.access_token,
+            refresh_token: d.refresh_token,
+            expires_in: d.expires_in,
+            user: d.user
+          }, email));
+          return;
+        }
+        if (d.status === "rejected") throw new Error("rejected");
+        if (d.status === "expired") throw new Error("expired");
+      }
+      throw new Error("timeout");
+    }
+
+    async function revokeRemoteSession() {
+      if (!session) return;
+      try {
+        await fetch(`${AUTH_URL}/logout`, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+      } catch { }
+    }
+
+    async function logout() {
+      await revokeRemoteSession();
+      clearSession();
+      showToast("로그아웃했습니다.");
+      updateUI();
+    }
+
+    function openLoginModal() {
+      lastActivity = Date.now();
+      if (isLoggedIn()) {
+        if (confirm(`${session.email} 계정에서 로그아웃할까요?`)) logout();
+        return;
+      }
+      document.getElementById("loginEmail").value = "";
+      document.getElementById("loginPassword").value = "";
+      document.getElementById("loginError").textContent = "";
+      document.getElementById("loginModal").classList.add("show");
+      setTimeout(() => document.getElementById("loginEmail").focus(), 100);
+    }
+
+    function closeLoginModal() {
+      document.getElementById("loginModal").classList.remove("show");
+      document.getElementById("loginPassword").value = "";
+    }
+
+    async function submitLogin() {
+      lastActivity = Date.now();
+      const email = sanitize(document.getElementById("loginEmail").value).trim().slice(0, 200);
+      const password = document.getElementById("loginPassword").value;
+      const errEl = document.getElementById("loginError");
+
+      if (!email || !password) {
+        errEl.textContent = "이메일과 비밀번호를 입력해 주세요.";
+        return;
+      }
+
+      errEl.textContent = "메일에서 승인을 기다리는 중...";
+      try {
+        await login(email, password);
+      } catch (e) {
+        const msg = {
+          invalid: "이메일 또는 비밀번호가 올바르지 않습니다.",
+          rejected: "로그인이 거절되었습니다.",
+          expired: "승인 시간이 지났습니다. 다시 시도해 주세요.",
+          timeout: "승인 시간이 지났습니다. 다시 시도해 주세요."
+        }[e.message] || "서버 오류가 발생했습니다.";
+        errEl.textContent = msg;
+        document.getElementById("loginPassword").value = "";
+        return;
+      }
+
+      closeLoginModal();
+      updateUI();
+      showToast(`${session.email}님, 로그인되었습니다.`);
+    }
+
+    function updateUI() {
+      const loginBtn = document.getElementById("loginBtn");
+      loginBtn.textContent = isLoggedIn() ? "로그아웃" : "Login";
+    }
+
+    function setupEvents() {
+      document.getElementById("homeLink").addEventListener("click", () => {
+        location.href = location.pathname + location.search;
+      });
+
+      document.getElementById("menuBtn").addEventListener("click", e => {
+        e.stopPropagation();
+        document.getElementById("menu").classList.toggle("show");
+      });
+
+      document.addEventListener("click", () => {
+        document.getElementById("menu").classList.remove("show");
+      });
+
+      document.getElementById("dictBtn").addEventListener("click", () => {
+        location.href = "xyock.html";
+      });
+
+      document.getElementById("editorBtn").addEventListener("click", () => {
+        lastActivity = Date.now();
+        document.getElementById("homePage").classList.remove("show");
+        document.getElementById("editorContainer").classList.add("show");
+        document.getElementById("menu").classList.remove("show");
+      });
+
+      document.getElementById("loginBtn").addEventListener("click", openLoginModal);
+      document.getElementById("loginSubmit").addEventListener("click", submitLogin);
+      document.getElementById("loginCancel").addEventListener("click", closeLoginModal);
+      document.getElementById("loginPassword").addEventListener("keydown", e => { if (e.key === "Enter") submitLogin(); });
+
+      document.getElementById("runBtn").addEventListener("click", runPython);
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        document.getElementById("codeInput").value = "";
+        document.getElementById("output").textContent = "Ready to run...";
+        document.getElementById("output").classList.add("empty");
+      });
+
+      document.getElementById("codeInput").addEventListener("keydown", e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runPython();
+      });
+
+      ["click", "keydown", "touchstart"].forEach(evt =>
+        document.addEventListener(evt, () => { lastActivity = Date.now(); }, { passive: true })
+      );
+    }
+
+    async function loadPython() {
+      try {
+        const output = document.getElementById("output");
+        output.textContent = "Pyodide로드 중...";
+        output.classList.remove("empty");
+        self.pyodide = await loadPyodide();
+        pyodideReady = true;
+        output.textContent = "Ready to run...";
+        output.classList.add("empty");
+      } catch (e) {
+        document.getElementById("output").textContent = `로드 오류: ${e.message}`;
+      }
+    }
+
+    async function runPython() {
+      if (!pyodideReady) {
+        showToast("Pyodide가 준비 중입니다. 다시 시도해 주세요.");
+        return;
+      }
+
+      const code = document.getElementById("codeInput").value;
+      const output = document.getElementById("output");
+
+      if (!code.trim()) {
+        output.textContent = "코드를 입력해 주세요.";
+        output.classList.remove("empty");
+        return;
+      }
+
+      output.textContent = "실행 중...";
+      output.classList.remove("empty");
+
+      try {
+        const result = await self.pyodide.runPythonAsync(code);
+        output.textContent = String(result || "실행 완료");
+      } catch (e) {
+        output.textContent = `오류: ${e.message}`;
+      }
+    }
+
+    setupEvents();
+    updateUI();
+    loadPython();
+  </script>
+</body>
+</html>
