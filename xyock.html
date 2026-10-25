@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lock AI · xyock</title>
+
+  <link rel="icon" href="/x/favicon/favicon.ico?v=1" sizes="any" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/x/favicon/favicon-96x96.png?v=1" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/x/favicon/apple-touch-icon.png?v=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="lock AI" />
+  <link rel="manifest" href="/x/favicon/site.webmanifest?v=1" />
+  <meta name="theme-color" content="#0a0a0a" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0a;
+      --panel: #141414;
+      --line: #2a2a2a;
+      --text: #e0e0e0;
+      --muted: #888;
+      --accent: #7ae5b3;
+      --error: #ff9a9a;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+    .logo {
+      font-size: 1.5em;
+      font-weight: 300;
+      letter-spacing: 2px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.35em;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .logo-img {
+      display: block;
+      width: 52px;
+      height: 52px;
+      max-width: 52px;
+      max-height: 52px;
+      flex-shrink: 0;
+      object-fit: contain;
+    }
+    .header-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+      padding-left: 16px;
+    }
+    .mode-indicator { font-size: 0.8em; color: var(--muted); }
+    .auth-col {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+    }
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.05em;
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover { border-color: #555; color: #ccc; }
+    .login-btn {
+      width: auto;
+      height: 40px;
+      padding: 0 16px;
+      border: 2px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .login-btn:hover { border-color: #555; color: #ccc; }
+    .login-btn.logged-in { border-color: var(--accent); color: var(--accent); }
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 30px 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .welcome { text-align: center; padding: 40px 0; }
+    .welcome h1 { font-size: 2.4em; font-weight: 300; margin-bottom: 12px; color: #fff; letter-spacing: 1px; }
+    .welcome p { font-size: 1.05em; color: var(--muted); }
+    .message { display: flex; animation: slideIn 0.25s ease-out; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message.user { justify-content: flex-end; }
+    .message.ai { justify-content: flex-start; }
+    .bubble {
+      max-width: 70%;
+      padding: 14px 18px;
+      border-radius: 8px;
+      line-height: 1.6;
+      font-size: 0.95em;
+      word-break: break-word;
+      white-space: pre-wrap;
+      background: transparent;
+      border: none;
+      color: #c8c8d0;
+    }
+    .bubble-actions { margin-top: 8px; display: flex; gap: 14px; }
+    .teach-link {
+      color: #a8d5ba;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      padding: 0;
+    }
+    .input-section {
+      padding: 20px 50px 30px;
+      border-top: 1px solid var(--line);
+      background: var(--bg);
+      position: sticky;
+      bottom: 0;
+    }
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 6px 8px 6px 8px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 28px;
+      transition: border-color 0.2s ease;
+    }
+    .input-wrapper:focus-within { border-color: #555; }
+    input.search-input {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 10px;
+      font-size: 1em;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: inherit;
+    }
+    input.search-input::placeholder { color: #666; }
+    .round-btn {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .attach-btn {
+      background: transparent;
+      color: #888;
+      font-size: 1.5em;
+      line-height: 1;
+    }
+    .attach-btn:hover { background: rgba(255, 255, 255, 0.06); color: #ccc; }
+    .send-btn {
+      background: #e0e0e0;
+      color: #0a0a0a;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    .send-btn:hover { background: #fff; }
+    .send-btn:disabled { background: #2a2a2a; color: #555; cursor: default; }
+    input[type="text"], input[type="password"], textarea {
+      width: 100%;
+      padding: 14px 18px;
+      font-size: 1em;
+      background: transparent;
+      border: 2px solid #333;
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      transition: border-color 0.2s ease;
+    }
+    input::placeholder, textarea::placeholder { color: #666; }
+    input:focus, textarea:focus { outline: none; border-color: #555; }
+    textarea { resize: vertical; min-height: 90px; }
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal.show { display: flex; }
+    .modal-content {
+      background: var(--panel);
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 36px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+    .modal-title {
+      font-size: 1.6em;
+      font-weight: 300;
+      margin-bottom: 24px;
+      text-align: center;
+      color: #fff;
+      letter-spacing: 1px;
+    }
+    .modal-input { margin-bottom: 14px; }
+    .modal-error {
+      min-height: 1.2em;
+      margin-bottom: 12px;
+      color: var(--error);
+      font-size: 0.9em;
+      text-align: center;
+    }
+    .modal-buttons { display: flex; gap: 12px; justify-content: center; }
+    .modal-btn {
+      padding: 11px 26px;
+      border: 2px solid #333;
+      background: transparent;
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .modal-btn:hover { border-color: #555; background: rgba(255, 255, 255, 0.04); }
+    .modal-btn.primary { border-color: #2d6d4f; color: #a8d5ba; }
+    .modal-btn.primary:hover { background: rgba(45, 109, 79, 0.2); }
+    .terms-list {
+      max-height: 360px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+    .term-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 15px;
+      border-bottom: 1px solid #222;
+    }
+    .term-item:last-child { border-bottom: none; }
+    .term-name { color: #d3d3d3; font-weight: 500; word-break: break-all; }
+    .term-delete-btn {
+      padding: 5px 12px;
+      border: 1px solid #a33;
+      background: transparent;
+      color: #e55;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85em;
+      flex-shrink: 0;
+    }
+    .term-delete-btn:hover { background: rgba(204, 51, 51, 0.15); }
+    .empty-message { text-align: center; padding: 28px; color: var(--muted); }
+    .toast {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f0f0f;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 14px 22px;
+      border-radius: 8px;
+      font-size: 0.95em;
+      z-index: 3000;
+      display: none;
+      max-width: 90%;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .toast.show { display: block; }
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    @media (max-width: 768px) {
+      header { padding: 15px 25px; }
+      .chat-container { padding: 20px 25px; }
+      .input-section { padding: 15px 25px 20px; }
+      .bubble { max-width: 90%; }
+    }
+    @media (max-width: 480px) {
+      header { padding: 12px 15px; }
+      .logo { font-size: 1.2em; }
+      .logo-img { width: 46px; height: 46px; max-width: 46px; max-height: 46px; }
+      .header-icons { gap: 4px; padding-left: 8px; }
+      .auth-col { gap: 4px; }
+      .login-btn { padding: 0 10px; }
+      .chat-container { padding: 15px; }
+      .input-section { padding: 12px 15px 15px; }
+      .input-wrapper { border-radius: 24px; }
+      .bubble { max-width: 95%; font-size: 0.9em; }
+      .welcome h1 { font-size: 1.8em; }
+      .modal-content { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" id="logoBtn" title="새로고침"><img class="logo-img" src="logo.png" alt="" />lock</div>
+    <div class="header-icons">
+      <span class="mode-indicator" id="modeIndicator">xyock AI</span>
+      <div class="auth-col">
+        <button class="login-btn" id="loginBtn" type="button">locked</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="chat-container" id="chat">
+    <div class="welcome" id="welcome">
+      <h1>How can I help?</h1>
+      <p>Ask xyock about anything, explain code, or get help writing code</p>
+    </div>
+  </div>
+
+  <div class="input-section">
+    <div class="input-wrapper">
+      <button class="round-btn attach-btn" id="clipBtn" type="button" title="클립보드 코드 분석">+</button>
+      <input id="searchInput" class="search-input" type="text" maxlength="500" placeholder="xyock에게 질문하거나 코드 요청하기..." autocomplete="off" />
+      <button class="round-btn send-btn" id="sendBtn" type="button" title="보내기" disabled>↑</button>
+    </div>
+  </div>
+
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <div class="modal-title">Login</div>
+      <input id="loginEmail" type="text" class="modal-input" placeholder="Email" autocomplete="username" maxlength="200" />
+      <input id="loginPassword" type="password" class="modal-input" placeholder="Password" autocomplete="current-password" maxlength="100" />
+      <div class="modal-error" id="loginError"></div>
+      <div class="modal-buttons">
+        <button class="modal-btn primary" id="loginSubmit" type="button">Login</button>
+        <button class="modal-btn" id="loginCancel" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const SUPABASE_URL = "https://lhbdijxjnqbzmrvrvrkr.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_e3oKyICzmGvyx1FFcO1dMQ_39veE0G4";
+    const TABLE_URL = `${SUPABASE_URL}/rest/v1/terms`;
+    const AUTH_URL = `${SUPABASE_URL}/auth/v1`;
+    const FN_URL = `${SUPABASE_URL}/functions/v1`;
+
+    const MAX_INPUT_LEN = 500;
+    const MAX_DEFINITION_LEN = 2000;
+    const MAX_CUSTOM_TERMS = 500;
+    const MAX_FILE_BYTES = 5 * 1024 * 1024;
+    const SESSION_KEY = "lockai_session";
+    const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
+    const LOGIN_POLL_MS = 3000;
+    const LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
+
+    const DEFAULT_TERMS = {
+      "AI": "AI is a short form of artificial intelligence. Artificial Intelligence is a computer system that learns patterns from data and makes decisions automatically.",
+      "Algorithm": "Algorithm is a step-by-step procedure to solve a problem or perform a computation.",
+      "Deep Learning": "Deep Learning is a machine learning technique that uses artificial neural networks stacked in multiple layers.",
+      "Backpropagation": "Backpropagation is an algorithm that calculates gradients by propagating errors backward through a neural network.",
+      "Batch": "Batch is a subset of data used in one iteration of model training.",
+      "Bias": "Bias is a parameter that shifts the output of a neuron; also refers to systematic errors in model predictions.",
+      "Classification": "Classification is a supervised learning task that assigns data to predefined categories or classes.",
+      "CNN": "CNN is a neural network architecture specialized for processing image data using convolutional layers.",
+      "Clustering": "Clustering is an unsupervised learning technique that groups similar data points together without predefined labels.",
+      "Dataset": "Dataset is a collection of data samples used to train, validate, or test machine learning models.",
+      "Decision Tree": "Decision Tree is a tree-structured algorithm that makes decisions by recursively splitting data based on feature values.",
+      "Embedding": "Embedding is a representation of words, images, or other data as vectors in a continuous space.",
+      "Epoch": "Epoch is one complete pass through the entire training dataset during model training.",
+      "Feature": "Feature is an individual measurable property or characteristic of the data used by the model for learning.",
+      "Fine-tuning": "Fine-tuning is adapting a pre-trained model to a specific task by training it on task-specific data.",
+      "GAN": "GAN (Generative Adversarial Network) is a neural network architecture with a generator and discriminator.",
+      "Gradient": "Gradient is the slope of a loss function; used to update model weights during optimization.",
+      "Gradient Descent": "Gradient Descent is an optimization algorithm that iteratively reduces loss by moving in the direction of steepest descent.",
+      "Hallucination": "Hallucination is when an AI generates plausible-sounding but factually incorrect information.",
+      "Hyperparameter": "Hyperparameter is a parameter set before training begins that controls the learning process.",
+      "Inference": "Inference is the process of using a trained model to make predictions on new, unseen data.",
+      "Input": "Input is data fed into a neural network or machine learning model.",
+      "Kernel": "Kernel is a small matrix or filter used in convolutional layers to scan and extract features from images.",
+      "Label": "Label is the correct answer or target value associated with training data in supervised learning.",
+      "Loss Function": "Loss Function is a mathematical function that measures the difference between predicted and actual values.",
+      "LSTM": "LSTM (Long Short-Term Memory) is a type of recurrent neural network designed to learn long-term dependencies.",
+      "Machine Learning": "Machine Learning is a branch of AI focused on creating algorithms that learn patterns from data.",
+      "Model": "Model is a mathematical representation of learned patterns that can make predictions on new data.",
+      "Neural Network": "Neural Network is a computational structure inspired by biological neurons.",
+      "Optimization": "Optimization is the process of adjusting model parameters to minimize loss and improve performance.",
+      "Overfitting": "Overfitting occurs when a model learns the training data too well, including its noise.",
+      "Regression": "Regression is a supervised learning task that predicts continuous numerical values.",
+      "RNN": "RNN (Recurrent Neural Network) is a neural network architecture designed to process sequential data.",
+      "Training": "Training is the process of feeding data to a model and adjusting its parameters to learn patterns."
+    };
+
+    let lastActivity = Date.now();
+    let customTerms = {};
+    let allTerms = { ...DEFAULT_TERMS };
+    let loginPending = false;
+    let session = loadSession();
+
+    function sanitize(text) {
+      return String(text).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+    }
+
+    function hasDefault(term) {
+      return Object.prototype.hasOwnProperty.call(DEFAULT_TERMS, term);
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3500);
+    }
+
+    function scrollToBottom() {
+      const chat = document.getElementById("chat");
+      requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; });
+    }
+
+    function appendMessage(role, text, type = "normal") {
+      const chat = document.getElementById("chat");
+      const msg = document.createElement("div");
+      msg.className = `message ${role} ${type}`;
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+      msg.appendChild(bubble);
+      chat.appendChild(msg);
+      scrollToBottom();
+      return bubble;
+    }
+
+    function addUserMessage(text) { appendMessage("user", text); }
+    function addAIMessage(text, type = "normal") { appendMessage("ai", text, type); }
+
+    function loadSession() {
+      try {
+        const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+        return s && s.access_token && s.refresh_token && s.user_id ? s : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveSession(s) {
+      session = s;
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    }
+
+    function clearSession() {
+      session = null;
+      localStorage.removeItem(SESSION_KEY);
+    }
+
+    function isLoggedIn() {
+      return !!session;
+    }
+
+
+    function toSession(data, fallbackEmail, previous = null) {
+      return {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: Math.floor(Date.now() / 1000) + (Number(data.expires_in) || 3600),
+        email: (data.user?.email || previous?.email || fallbackEmail || "").toLowerCase(),
+        user_id: data.user?.id || previous?.user_id || "",
+      };
+    }
+
+    async function postAuth(grantType, body) {
+      const res = await fetch(`${AUTH_URL}/token?grant_type=${grantType}`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+
+    async function ensureSession() {
+      if (!session) return false;
+      if (session.expires_at - 60 > Math.floor(Date.now() / 1000)) return true;
+      try {
+        const data = await postAuth("refresh_token", { refresh_token: session.refresh_token });
+        saveSession(toSession(data, session.email, session));
+        return true;
+      } catch {
+        clearSession();
+        return false;
+      }
+    }
+
+    async function login(email, password) {
+      const headers = { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" };
+
+      const res = await fetch(`${FN_URL}/request-login`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ email, password })
+      });
+      if (res.status === 401) throw new Error("invalid");
+      if (!res.ok) throw new Error(`request-login HTTP ${res.status}`);
+      const { request_id, poll_token } = await res.json();
+
+      const deadline = Date.now() + LOGIN_TIMEOUT_MS;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, LOGIN_POLL_MS));
+        const r2 = await fetch(`${FN_URL}/check-login`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ request_id, poll_token })
+        });
+        if (!r2.ok) throw new Error(`check-login HTTP ${r2.status}`);
+        const d = await r2.json().catch(() => ({}));
+        if (d.status === "approved") {
+          saveSession(toSession({
+            access_token: d.access_token,
+            refresh_token: d.refresh_token,
+            expires_in: d.expires_in,
+            user: d.user
+          }, email));
+          return;
+        }
+        if (d.status === "rejected") throw new Error("rejected");
+        if (d.status === "expired") throw new Error("expired");
+      }
+      throw new Error("timeout");
+    }
+
+    async function revokeRemoteSession() {
+      if (!session) return;
+      try {
+        await fetch(`${AUTH_URL}/logout`, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+      } catch { }
+    }
+
+    async function logout() {
+      await revokeRemoteSession();
+      clearSession();
+      updateUI();
+      addAIMessage("로그아웃했습니다.", "success");
+    }
+
+
+    function openLoginModal() {
+      lastActivity = Date.now();
+      if (isLoggedIn()) {
+        if (confirm(`${session.email} 계정에서 로그아웃할까요?`)) logout();
+        return;
+      }
+      document.getElementById("loginEmail").value = "";
+      document.getElementById("loginPassword").value = "";
+      document.getElementById("loginError").textContent = "";
+      document.getElementById("loginModal").classList.add("show");
+      setTimeout(() => document.getElementById("loginEmail").focus(), 100);
+    }
+
+    function closeLoginModal() {
+      document.getElementById("loginModal").classList.remove("show");
+      document.getElementById("loginPassword").value = "";
+    }
+
+    async function submitLogin() {
+      if (loginPending) return;
+      lastActivity = Date.now();
+      const email = sanitize(document.getElementById("loginEmail").value).trim().slice(0, 200);
+      const password = document.getElementById("loginPassword").value;
+      const errEl = document.getElementById("loginError");
+
+      if (!email || !password) {
+        errEl.textContent = "이메일과 비밀번호를 입력해 주세요.";
+        return;
+      }
+
+      loginPending = true;
+      errEl.textContent = "메일에서 승인을 기다리는 중...";
+      try {
+        await login(email, password);
+      } catch (e) {
+        const msg = {
+          invalid: "이메일 또는 비밀번호가 올바르지 않습니다.",
+          rejected: "로그인이 거절되었습니다.",
+          expired: "승인 시간이 지났습니다. 다시 시도해 주세요.",
+          timeout: "승인 시간이 지났습니다. 다시 시도해 주세요."
+        }[e.message] || "서버 오류가 발생했습니다.";
+        errEl.textContent = msg + " [" + e.message + "]";
+        document.getElementById("loginPassword").value = "";
+        loginPending = false;
+        return;
+      }
+
+      loginPending = false;
+      closeLoginModal();
+      updateUI();
+      addAIMessage(`${session.email}님, 로그인되었습니다.`, "success");
+    }
+
+
+    function updateUI() {
+      const indicator = document.getElementById("modeIndicator");
+      const loginBtn = document.getElementById("loginBtn");
+      indicator.textContent = "xyock AI";
+      indicator.style.display = "";
+      const loggedIn = isLoggedIn();
+      loginBtn.textContent = loggedIn ? "로그아웃" : "locked";
+      loginBtn.classList.toggle("logged-in", loggedIn);
+    }
+
+    async function apiRaw(url, options = {}) {
+      const token = isLoggedIn() ? session.access_token : SUPABASE_ANON_KEY;
+      const res = await fetch(url, {
+        ...options,
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (res.status === 204) return null;
+      return res.json().catch(() => null);
+    }
+
+    async function api(url, options = {}) {
+      await ensureSession();
+      return apiRaw(url, options);
+    }
+
+    async function loadSharedTerms() {
+      const rows = await api(
+        `${TABLE_URL}?select=term,definition&order=term.asc&limit=${MAX_CUSTOM_TERMS}`
+      );
+
+      const fresh = {};
+      for (const row of rows || []) {
+        if (typeof row.term !== "string" || typeof row.definition !== "string") continue;
+        const term = sanitize(row.term).slice(0, MAX_INPUT_LEN);
+        if (!term || hasDefault(term)) continue;
+        fresh[term] = sanitize(row.definition).slice(0, MAX_DEFINITION_LEN);
+      }
+
+      customTerms = fresh;
+      allTerms = { ...DEFAULT_TERMS, ...customTerms };
+    }
+
+
+    function generateCode(language, request) {
+      const templates = {
+        python: {
+          hello: "print('Hello, World!')",
+          hello_world: "print('Hello, World!')",
+          fibonacci: `def fibonacci(n):
+    a, b = 0, 1
+    for _ in range(n):
+        print(a, end=' ')
+        a, b = b, a + b`,
+          factorial: `def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)`,
+          sort: `arr = [64, 34, 25, 12, 22, 11, 90]
+print(sorted(arr))`,
+          loop: `for i in range(10):
+    print(i)`
+        },
+        javascript: {
+          hello: `console.log('Hello, World!');`,
+          hello_world: `console.log('Hello, World!');`,
+          fibonacci: `function fibonacci(n) {
+  let a = 0, b = 1;
+  for (let i = 0; i < n; i++) {
+    console.log(a);
+    [a, b] = [b, a + b];
+  }
+}`,
+          factorial: `function factorial(n) {
+  return n <= 1 ? 1 : n * factorial(n - 1);
+}`,
+          sort: `const arr = [64, 34, 25, 12, 22, 11, 90];
+console.log(arr.sort((a, b) => a - b));`,
+          loop: `for (let i = 0; i < 10; i++) {
+  console.log(i);
+}`
+        },
+        java: {
+          hello: `public class HelloWorld {
+  public static void main(String[] args) {
+    System.out.println("Hello, World!");
+  }
+}`,
+          hello_world: `public class HelloWorld {
+  public static void main(String[] args) {
+    System.out.println("Hello, World!");
+  }
+}`,
+          factorial: `public static int factorial(int n) {
+  return n <= 1 ? 1 : n * factorial(n - 1);
+}`,
+          loop: `for (int i = 0; i < 10; i++) {
+  System.out.println(i);
+}`,
+          html: `import java.net.http.*;
+public class HTMLTest {
+  public static void main(String[] args) {
+    String html = "<html><body><h1>Hello from Java</h1></body></html>";
+    System.out.println(html);
+  }
+}`
+        },
+        cpp: {
+          hello: `#include <iostream>
+using namespace std;
+int main() {
+  cout << "Hello, World!" << endl;
+  return 0;
+}`,
+          hello_world: `#include <iostream>
+using namespace std;
+int main() {
+  cout << "Hello, World!" << endl;
+  return 0;
+}`,
+          factorial: `int factorial(int n) {
+  return n <= 1 ? 1 : n * factorial(n - 1);
+}`,
+          loop: `for (int i = 0; i < 10; i++) {
+  cout << i << endl;
+}`
+        },
+        c: {
+          hello: `#include <stdio.h>
+int main() {
+  printf("Hello, World!\\n");
+  return 0;
+}`,
+          hello_world: `#include <stdio.h>
+int main() {
+  printf("Hello, World!\\n");
+  return 0;
+}`,
+          factorial: `int factorial(int n) {
+  return n <= 1 ? 1 : n * factorial(n - 1);
+}`,
+          loop: `for (int i = 0; i < 10; i++) {
+  printf("%d\\n", i);
+}`
+        },
+        html: {
+          hello: `<!DOCTYPE html>
+<html>
+<head>
+  <title>Hello</title>
+</head>
+<body>
+  <h1>Hello, World!</h1>
+</body>
+</html>`,
+          button: `<button onclick="alert('Hello!')">Click me</button>`,
+          form: `<form>
+  <input type="text" placeholder="Enter name">
+  <button type="submit">Submit</button>
+</form>`,
+          table: `<table border="1">
+  <tr>
+    <th>Name</th>
+    <th>Age</th>
+  </tr>
+  <tr>
+    <td>John</td>
+    <td>25</td>
+  </tr>
+</table>`
+        }
+      };
+
+      const lang = language.toLowerCase().replace(/\+/g, 'p');
+      const req = request.toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      if (templates[lang] && templates[lang][req]) {
+        return templates[lang][req];
+      }
+      
+      return `// ${language}로 ${request} 코드 작성\n// 더 자세한 요청을 해주세요.`;
+    }
+
+    function checkSpelling(text) {
+      const issues = [];
+      
+      const englishIssues = [
+        { pattern: /\brecieve\b/gi, correct: "receive" },
+        { pattern: /\boccassion\b/gi, correct: "occasion" },
+        { pattern: /\bseperate\b/gi, correct: "separate" },
+        { pattern: /\bdefinately\b/gi, correct: "definitely" },
+        { pattern: /\baccomodate\b/gi, correct: "accommodate" },
+        { pattern: /\bneccessary\b/gi, correct: "necessary" }
+      ];
+
+      englishIssues.forEach(issue => {
+        const match = text.match(issue.pattern);
+        if (match) {
+          issues.push(`"${match[0]}" → "${issue.correct}"`);
+        }
+      });
+
+      return issues.length > 0 
+        ? `맞춤법 검사 결과:\n${issues.map(i => `- ${i}`).join('\n')}`
+        : "맞춤법 검사: 문제 없습니다.";
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("searchInput");
+      const query = sanitize(input.value).trim().slice(0, MAX_INPUT_LEN);
+      if (!query) return;
+      lastActivity = Date.now();
+
+      document.getElementById("welcome")?.remove();
+      addUserMessage(query);
+      input.value = "";
+      document.getElementById("sendBtn").disabled = true;
+
+      // 코드 생성 요청
+      const codeMatch = query.match(/^(?:create|write|make|generate)\s+(?:code|script)?\s*(?:in|for)?\s*(python|javascript|java|c\+\+|cpp|c|html)\s+(.+)/i);
+      if (codeMatch) {
+        const language = codeMatch[1];
+        const request = codeMatch[2];
+        const code = generateCode(language, request);
+        addAIMessage(`[${language.toUpperCase()} Code]\n${code}`, "success");
+        return;
+      }
+
+      // 맞춤법 검사 요청
+      if (query.match(/^check spelling|맞춤법 검사/i)) {
+        const result = checkSpelling(query);
+        addAIMessage(result, "success");
+        return;
+      }
+
+      // 용어 검색
+      let key = findTerm(query);
+      if (!key) {
+        try {
+          await loadSharedTerms();
+          key = findTerm(query);
+        } catch { }
+      }
+
+      if (key) {
+        showTerm(key);
+        return;
+      }
+
+      const codeLang = detectLanguage(query);
+      if (codeLang) {
+        addAIMessage(analyzeCode(codeLang, query), "success");
+        return;
+      }
+
+      await askLocalxyock(query);
+    }
+
+    function findTerm(query) {
+      if (Object.prototype.hasOwnProperty.call(allTerms, query)) return query;
+      const lower = query.toLowerCase();
+      return Object.keys(allTerms).find(t => t.toLowerCase() === lower) || null;
+    }
+
+    function showTerm(key) {
+      appendMessage("ai", `[${key}]
+${allTerms[key]}`, "success");
+    }
+
+    async function askLocalxyock(question) {
+      const pending = appendMessage("ai", "xyock이 답변을 작성하고 있어요…");
+      try {
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ q: question })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || `서버 오류 (${response.status})`);
+        }
+        pending.textContent = data.answer || "AI가 답변을 반환하지 않았습니다.";
+      } catch (error) {
+        pending.textContent = `xyock AI에 연결하지 못했습니다. ${error.message || "Ollama와 app.py가 실행 중인지 확인해 주세요."}`;
+        pending.parentElement?.classList.add("error");
+      }
+      scrollToBottom();
+    }
+
+    async function handleClipboard() {
+      lastActivity = Date.now();
+      let text = "";
+      try {
+        text = await navigator.clipboard.readText();
+      } catch {
+        addAIMessage("클립보드를 읽지 못했습니다. 브라우저의 클립보드 권한을 허용하고 다시 + 를 눌러 주세요.", "error");
+        return;
+      }
+
+      text = sanitize(text).slice(0, MAX_FILE_BYTES);
+      if (!text.trim()) {
+        addAIMessage("클립보드가 비어 있습니다. 코드를 먼저 복사해 주세요.", "error");
+        return;
+      }
+
+      document.getElementById("welcome")?.remove();
+      addUserMessage("[클립보드 코드]");
+      addAIMessage(analyzeCode(detectLanguage(text), text), "success");
+    }
+
+    function detectLanguage(text) {
+      // Java를 먼저 체크 (HTML 감지 전)
+      if (/system\.out\.print/i.test(text) || /public\s+(static\s+)?(class|void)/i.test(text)) return "java";
+      
+      if (/<!doctype html|<html|<body|<div/i.test(text)) return "html";
+      if (/#include\s*</i.test(text) || /\bprintf\s*\(/i.test(text)) return "c";
+      if (/(^|[^.\w])print\s*\(|\bdef\s+\w+\s*\(|^\s*import\s+\w+/im.test(text)) return "py";
+      return "";
+    }
+
+    function analyzeCode(ext, text) {
+      const langs = { py: "Python", java: "Java", html: "HTML", htm: "HTML", c: "C" };
+      let lang = langs[ext];
+      
+      // Java + HTML 혼합 감지
+      if (ext === "java" && /<html|<!doctype/i.test(text)) {
+        lang = "Java + HTML";
+      }
+      
+      if (!lang) {
+        return "어떤 언어의 코드인지 알 수 없습니다. Python, Java, C, HTML 코드만 분석할 수 있습니다.";
+      }
+
+      if (ext === "html" || ext === "htm") {
+        return "이것은 HTML 코드입니다.\n실행하면 브라우저에 웹 페이지가 표시됩니다.";
+      }
+
+      let result = `이것은 ${lang} 코드입니다.\n`;
+      const outputs = extractOutputs(ext, text);
+      const caseNote = caseWarning(ext, text);
+      if (outputs.length) {
+        result += caseNote
+          ? `주의: ${caseNote} 그대로 실행하면 오류가 나고, 고쳐서 실행하면 다음 출력물이 나옵니다:\n`
+          : "실행하면 다음 출력물이 나옵니다:\n";
+        result += outputs.map(o => `- ${o}`).join("\n");
+      } else {
+        result += "출력문을 정적으로 찾지 못했습니다. 실행해야 정확한 출력을 확인할 수 있습니다.";
+      }
+      return result;
+    }
+
+    function caseWarning(ext, text) {
+      if (ext === "py" && /(^|[^.\w])Print\s*\(/.test(text)) {
+        return "Python은 print를 소문자로 써야 합니다.";
+      }
+      if (ext === "java" && !/System\.out\.print/.test(text) && /system\.out\.print/i.test(text)) {
+        return "Java는 System.out.println을 대소문자 그대로 써야 합니다.";
+      }
+      if (ext === "c" && !/\bprintf\s*\(/.test(text) && /\bprintf\s*\(/i.test(text)) {
+        return "C는 printf를 소문자로 써야 합니다.";
+      }
+      return "";
+    }
+
+    function extractOutputs(ext, text) {
+      const patterns = {
+        py: /print\(\s*(['"])((?:\\.|(?!\1)[^\\])*)\1\s*\)/gi,
+        java: /System\.out\.print(?:ln)?\(\s*"((?:\\.|[^"\\])*)"\s*\)/gi,
+        c: /printf\(\s*"((?:\\.|[^"\\])*)"\s*\)/gi
+      };
+      const re = patterns[ext];
+      if (!re) return [];
+
+      const outputs = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        outputs.push(m[1]);
+      }
+      return outputs;
+    }
+
+    async function init() {
+      setupEvents();
+      updateUI();
+      loadSharedTerms().catch(() => {});
+    }
+
+    function setupEvents() {
+      const input = document.getElementById("searchInput");
+      const sendBtn = document.getElementById("sendBtn");
+
+      document.getElementById("logoBtn").addEventListener("click", () => {
+        location.href = "index.html";
+      });
+
+      input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+      input.addEventListener("input", () => {
+        sendBtn.disabled = input.value.trim() === "";
+      });
+      sendBtn.addEventListener("click", sendMessage);
+
+      document.getElementById("loginBtn").addEventListener("click", openLoginModal);
+
+      document.getElementById("loginSubmit").addEventListener("click", submitLogin);
+      document.getElementById("loginCancel").addEventListener("click", closeLoginModal);
+      document.getElementById("loginPassword").addEventListener("keydown", e => { if (e.key === "Enter") submitLogin(); });
+
+
+
+      document.getElementById("clipBtn").addEventListener("click", handleClipboard);
+
+      const backdrops = {
+        loginModal: closeLoginModal
+      };
+      for (const [id, close] of Object.entries(backdrops)) {
+        document.getElementById(id).addEventListener("click", e => {
+          if (e.target.id === id) close();
+        });
+      }
+
+      ["click", "keydown", "touchstart"].forEach(evt =>
+        document.addEventListener(evt, () => { lastActivity = Date.now(); }, { passive: true })
+      );
+    }
+
+    init();
+  </script>
+</body>
+</html>
