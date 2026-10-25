@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>xyock</title>
+
+  <link rel="icon" href="/x/favicon/favicon.ico?v=1" sizes="any" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/x/favicon/favicon-96x96.png?v=1" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/x/favicon/apple-touch-icon.png?v=1" />
+  <link rel="manifest" href="/x/favicon/site.webmanifest?v=1" />
+  <meta name="theme-color" content="#0a0a0a" />
+
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0a;
+      --panel: #141414;
+      --line: #2a2a2a;
+      --text: #e0e0e0;
+      --muted: #888;
+      --accent: #7ae5b3;
+      --error: #ff9a9a;
+      --hdr: 86px;
+      --pad: 50px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: var(--hdr);
+      padding: 0 50px;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+    .logo {
+      font-size: 1.5em;
+      font-weight: 300;
+      letter-spacing: 2px;
+      color: #fff;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .menu-wrap { position: relative; }
+    .menu-btn {
+      width: 44px;
+      height: 44px;
+      border: 2px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.3em;
+      transition: all 0.2s ease;
+    }
+    .menu-btn:hover { border-color: #555; color: #ccc; }
+
+    .menu-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      min-width: 220px;
+      background: var(--panel);
+      border: 1px solid #333;
+      border-radius: 10px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+      z-index: 200;
+    }
+    .menu-dropdown.show { display: block; }
+
+    .menu-item {
+      display: block;
+      width: 100%;
+      padding: 14px 18px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #222;
+      color: var(--text);
+      text-align: left;
+      font-size: 0.95em;
+      font-family: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item:hover { background: rgba(255, 255, 255, 0.05); }
+    .menu-item .sub { display: block; font-size: 0.8em; color: var(--muted); margin-top: 2px; }
+    .menu-item.logged-in { color: var(--accent); }
+
+    main { flex: 1; }
+    .view { display: none; }
+    .view.show { display: block; }
+
+    .home-video {
+      display: block;
+      width: 100%;
+      height: calc(100dvh - var(--hdr) - 40px);
+      object-fit: contain;
+      background: #000;
+      padding: 20px 0;
+    }
+
+    .home-section {
+      border-top: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .section-toggle {
+      width: 100%;
+      padding: 20px var(--pad);
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 1.1em;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .section-toggle:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .toggle-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      font-size: 0.8em;
+      transition: transform 0.2s ease;
+    }
+
+    .section-toggle.active .toggle-icon {
+      transform: rotate(90deg);
+    }
+
+    .section-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      padding: 0 var(--pad);
+    }
+
+    .section-content.show {
+      max-height: 1000px;
+      padding: 0 var(--pad) 20px var(--pad);
+    }
+
+    .section-content p {
+      line-height: 1.6;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .home-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 28px;
+      padding: 20px var(--pad);
+      border-top: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .home-footer a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      text-decoration: none;
+    }
+    .home-footer svg { width: 32px; height: 32px; color: #fff; flex-shrink: 0; }
+    .home-footer span { font-size: 0.95em; font-weight: 300; letter-spacing: 0.5px; color: var(--muted); }
+    .home-footer a:hover span { color: #ccc; }
+
+    .home-link { cursor: pointer; }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-mark { width: 56px; height: 56px; object-fit: contain; flex-shrink: 0; display: block; }
+    .editor-head h2 { display: flex; align-items: center; gap: 10px; }
+    .editor-head .logo-mark { width: 40px; height: 40px; }
+
+    .pad { padding: 40px 50px; }
+    .editor-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .editor-head h2 { font-size: 1.3em; font-weight: 400; color: #fff; }
+    .editor-status { font-size: 0.85em; color: var(--muted); }
+    .btn-group { display: flex; gap: 8px; }
+
+    .btn {
+      padding: 9px 18px;
+      border: 2px solid #333;
+      background: transparent;
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95em;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .btn:hover { border-color: #555; background: rgba(255, 255, 255, 0.04); }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn.primary { border-color: #2d6d4f; color: #a8d5ba; }
+    .btn.primary:hover { background: rgba(45, 109, 79, 0.2); }
+
+    .code-area {
+      width: 100%;
+      min-height: 320px;
+      padding: 16px;
+      background: #0f0f0f;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #e6e6e6;
+      font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+      font-size: 0.95em;
+      line-height: 1.6;
+      resize: vertical;
+      tab-size: 4;
+      outline: none;
+    }
+    .code-area:focus { border-color: #555; }
+
+    .output-label { margin: 18px 0 8px; font-size: 0.85em; color: var(--muted); }
+    .output {
+      min-height: 120px;
+      padding: 16px;
+      background: #0f0f0f;
+      border: 1px solid #333;
+      border-radius: 8px;
+      font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+      font-size: 0.92em;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #c8c8d0;
+    }
+    .output.error { color: var(--error); }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal.show { display: flex; }
+    .modal-content {
+      background: var(--panel);
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 36px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+    .modal-title {
+      font-size: 1.6em;
+      font-weight: 300;
+      margin-bottom: 24px;
+      text-align: center;
+      color: #fff;
+      letter-spacing: 1px;
+    }
+    .field {
+      width: 100%;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      font-size: 1em;
+      background: transparent;
+      border: 2px solid #333;
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+    }
+    .field:focus { border-color: #555; }
+    .field::placeholder { color: #666; }
+    .modal-error {
+      min-height: 1.2em;
+      margin-bottom: 12px;
+      color: var(--error);
+      font-size: 0.9em;
+      text-align: center;
+    }
+    .btn-block { width: 100%; padding: 12px; }
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #555;
+      font-size: 0.85em;
+      margin: 18px 0;
+    }
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #2a2a2a;
+    }
+    .btn-github {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px;
+      background: #f0f0f0;
+      border: 2px solid #f0f0f0;
+      color: #0a0a0a;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1em;
+    }
+    .btn-github:hover { background: #fff; border-color: #fff; }
+    .modal-cancel { margin-top: 14px; width: 100%; }
+
+    .toast {
+      position: fixed;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f0f0f;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 14px 22px;
+      border-radius: 8px;
+      font-size: 0.95em;
+      z-index: 3000;
+      display: none;
+      max-width: 90%;
+      text-align: center;
+    }
+    .toast.show { display: block; }
+
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
+
+    @media (max-width: 768px) {
+      :root { --hdr: 78px; --pad: 25px; }
+      header { padding: 0 25px; }
+      .pad { padding: 28px 25px; }
+    }
+    @media (max-width: 480px) {
+      :root { --hdr: 70px; --pad: 15px; }
+      header { padding: 0 15px; }
+      .logo { font-size: 1.2em; }
+      .logo-mark { width: 44px; height: 44px; }
+      .pad { padding: 20px 15px; }
+      .modal-content { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="logo home-link" href="#home" id="logoBtn"><img class="logo-mark" src="logo.png" alt="" />xyock</a>
+
+    <div class="menu-wrap">
+      <button class="menu-btn" id="menuBtn" type="button" aria-label="메뉴">☰</button>
+      <div class="menu-dropdown" id="menuDropdown">
+        <a class="menu-item" href="xyock.html">xyock<span class="sub">용어 사전 열기</span></a>
+        <button class="menu-item" id="menuPython" type="button">Python 편집기<span class="sub">브라우저에서 코드 실행</span></button>
+        <button class="menu-item" id="menuLogin" type="button">로그인<span class="sub" id="menuLoginSub">이메일 또는 GitHub</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="view show" id="viewHome">
+      <video class="home-video" src="intro.mp4" autoplay muted loop playsinline></video>
+
+      <div class="home-section">
+        <button class="section-toggle" type="button" data-target="description">
+          <span class="toggle-icon">▶</span>
+          <span>Description</span>
+        </button>
+        <div id="description" class="section-content">
+          <p>Add your description here.</p>
+        </div>
+      </div>
+
+      <div class="home-section">
+        <button class="section-toggle" type="button" data-target="notice">
+          <span class="toggle-icon">▶</span>
+          <span>Notice</span>
+        </button>
+        <div id="notice" class="section-content">
+          <p>Add your notice here.</p>
+        </div>
+      </div>
+
+      <footer class="home-footer">
+        <a href="https://github.com" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.82 1.23.82.72 1.21 1.87.86 2.33.66.07-.52.28-.86.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+        <a href="https://supabase.com" target="_blank" rel="noopener" aria-label="Supabase">
+          <svg viewBox="0 0 109 113" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M63.708 110.284c3.806 4.072 10.25 1.137 10.892-4.932l7.033-75.471H109L63.708 110.284Z" fill="#3ECF8E"/>
+            <path d="M63.708 2.872C59.902-1.2 53.116-1.2 52.115 4.932L45.082 80.403H0L63.708 2.872Z" fill="#3ECF8E" opacity="0.7"/>
+          </svg>
+          <span>Supabase</span>
+        </a>
+      </footer>
+    </section>
+
+    <section class="view pad" id="viewPython">
+      <div class="editor-head">
+        <div>
+          <h2><a class="home-link" href="#home" aria-label="홈으로"><img class="logo-mark" src="logo.png" alt="" /></a>Python 편집기</h2>
+          <div class="editor-status" id="pyStatus">Python 엔진 준비 중...</div>
+        </div>
+        <div class="btn-group">
+          <button class="btn" id="clearBtn" type="button">지우기</button>
+          <button class="btn primary" id="runBtn" type="button" disabled>▶ 실행</button>
+        </div>
+      </div>
+
+      <textarea class="code-area" id="codeArea" spellcheck="false" placeholder="# 여기에 Python 코드를 작성하세요"></textarea>
+
+      <div class="output-label">출력</div>
+      <pre class="output" id="output"></pre>
+    </section>
+  </main>
+
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <div class="modal-title">Login</div>
+      <input id="loginEmail" type="text" class="field" placeholder="Email" autocomplete="username" maxlength="200" />
+      <input id="loginPassword" type="password" class="field" placeholder="Password" autocomplete="current-password" maxlength="100" />
+      <div class="modal-error" id="loginError"></div>
+      <button class="btn primary btn-block" id="loginSubmit" type="button">이메일로 로그인</button>
+
+      <div class="divider">또는</div>
+
+      <button class="btn-github" id="githubLogin" type="button">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.82 1.23.82.72 1.21 1.87.86 2.33.66.07-.52.28-.86.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        GitHub로 로그인
+      </button>
+
+      <button class="btn modal-cancel" id="loginCancel" type="button">취소</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const SUPABASE_URL = "https://lhbdijxjnqbzmrvrvrkr.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_e3oKyICzmGvyx1FFcO1dMQ_39veE0G4";
+    const AUTH_URL = `${SUPABASE_URL}/auth/v1`;
+    const PROFILE_URL = `${SUPABASE_URL}/rest/v1/profiles`;
+    const FN_URL = `${SUPABASE_URL}/functions/v1`;
+    const SESSION_KEY = "lockai_session";
+    const LOGIN_POLL_MS = 3000;
+    const LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
+
+    let session = loadSession();
+    let pyPromise = null;
+    let loginPending = false;
+
+    function showToast(text) {
+      const toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    function isLoggedIn() { return !!session; }
+
+    function loadSession() {
+      try {
+        const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+        return s && s.access_token && s.refresh_token && s.user_id ? s : null;
+      } catch { return null; }
+    }
+    function saveSession(s) {
+      session = s;
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    }
+    function clearSession() {
+      session = null;
+      localStorage.removeItem(SESSION_KEY);
+    }
+    function toSession(data, fallbackEmail) {
+      return {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: Math.floor(Date.now() / 1000) + (Number(data.expires_in) || 3600),
+        email: (data.user?.email || fallbackEmail || "").toLowerCase(),
+        user_id: data.user?.id || "",
+        is_pro: false
+      };
+    }
+
+    async function refreshProFlag() {
+      if (!session) return;
+      try {
+        const res = await fetch(`${PROFILE_URL}?select=is_pro&id=eq.${encodeURIComponent(session.user_id)}`, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+        const rows = res.ok ? await res.json() : [];
+        session.is_pro = rows?.[0]?.is_pro === true;
+      } catch {
+        session.is_pro = false;
+      }
+      saveSession(session);
+    }
+
+    async function ensureSession() {
+      if (!session) return false;
+      if (session.expires_at - 60 > Math.floor(Date.now() / 1000)) return true;
+      try {
+        const res = await fetch(`${AUTH_URL}/token?grant_type=refresh_token`, {
+          method: "POST",
+          headers: { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh_token: session.refresh_token })
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        saveSession(toSession(data, session.email));
+        return true;
+      } catch {
+        clearSession();
+        updateMenu();
+        return false;
+      }
+    }
+
+    async function loginWithEmail(email, password) {
+      const headers = { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" };
+
+      const res = await fetch(`${FN_URL}/request-login`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ email, password })
+      });
+      if (res.status === 401) throw new Error("invalid");
+      if (!res.ok) throw new Error(`request-login HTTP ${res.status}`);
+      const { request_id, poll_token } = await res.json();
+
+      const deadline = Date.now() + LOGIN_TIMEOUT_MS;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, LOGIN_POLL_MS));
+        const r2 = await fetch(`${FN_URL}/check-login`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ request_id, poll_token })
+        });
+        if (!r2.ok) throw new Error(`check-login HTTP ${r2.status}`);
+        const d = await r2.json().catch(() => ({}));
+        if (d.status === "approved") {
+          saveSession(toSession({
+            access_token: d.access_token,
+            refresh_token: d.refresh_token,
+            expires_in: d.expires_in,
+            user: d.user
+          }, email));
+          await refreshProFlag();
+          return;
+        }
+        if (d.status === "rejected") throw new Error("rejected");
+        if (d.status === "expired") throw new Error("expired");
+      }
+      throw new Error("timeout");
+    }
+
+    const REDIRECT_URL = "https://xyock.github.io/x/index.html";
+
+    function loginWithGithub() {
+      location.href = `${AUTH_URL}/authorize?provider=github&redirect_to=${encodeURIComponent(REDIRECT_URL)}`;
+    }
+
+    async function handleOAuthReturn() {
+      if (!location.hash.includes("access_token=")) return;
+      const params = new URLSearchParams(location.hash.slice(1));
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+      const expiresIn = params.get("expires_in");
+      history.replaceState(null, "", location.pathname + location.search);
+
+      if (!accessToken || !refreshToken) return;
+      try {
+        const res = await fetch(`${AUTH_URL}/user`, {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${accessToken}` }
+        });
+        if (!res.ok) throw new Error();
+        const user = await res.json();
+        saveSession(toSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          expires_in: expiresIn,
+          user
+        }, user.email));
+        await refreshProFlag();
+        updateMenu();
+        showToast(`${session.email}님, GitHub로 로그인되었습니다.`);
+      } catch {
+        showToast("GitHub 로그인에 실패했습니다. 다시 시도해 주세요.");
+      }
+    }
+
+    async function logout() {
+      if (session) {
+        try {
+          await fetch(`${AUTH_URL}/logout`, {
+            method: "POST",
+            headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${session.access_token}` }
+          });
+        } catch {}
+      }
+      clearSession();
+      updateMenu();
+      showToast("로그아웃했습니다.");
+    }
+
+    function updateMenu() {
+      const loginBtn = document.getElementById("menuLogin");
+      const sub = document.getElementById("menuLoginSub");
+      if (isLoggedIn()) {
+        loginBtn.classList.add("logged-in");
+        loginBtn.firstChild.textContent = "로그아웃";
+        sub.textContent = session.email;
+      } else {
+        loginBtn.classList.remove("logged-in");
+        loginBtn.firstChild.textContent = "로그인";
+        sub.textContent = "이메일 또는 GitHub";
+      }
+    }
+
+    function toggleMenu(force) {
+      const dd = document.getElementById("menuDropdown");
+      dd.classList.toggle("show", force ?? !dd.classList.contains("show"));
+    }
+
+    function onMenuLoginClick() {
+      toggleMenu(false);
+      if (isLoggedIn()) {
+        if (confirm(`${session.email} 계정에서 로그아웃할까요?`)) logout();
+        return;
+      }
+      openLoginModal();
+    }
+
+    function openLoginModal() {
+      document.getElementById("loginEmail").value = "";
+      document.getElementById("loginPassword").value = "";
+      document.getElementById("loginError").textContent = "";
+      document.getElementById("loginModal").classList.add("show");
+      setTimeout(() => document.getElementById("loginEmail").focus(), 100);
+    }
+
+    function closeLoginModal() {
+      document.getElementById("loginModal").classList.remove("show");
+      document.getElementById("loginPassword").value = "";
+    }
+
+    async function submitLogin() {
+      if (loginPending) return;
+      const email = document.getElementById("loginEmail").value.trim().slice(0, 200);
+      const password = document.getElementById("loginPassword").value;
+      const errEl = document.getElementById("loginError");
+
+      if (!email || !password) {
+        errEl.textContent = "이메일과 비밀번호를 입력해 주세요.";
+        return;
+      }
+
+      loginPending = true;
+      errEl.textContent = "메일에서 승인을 기다리는 중...";
+      try {
+        await loginWithEmail(email, password);
+      } catch (e) {
+        const msg = {
+          invalid: "이메일 또는 비밀번호가 올바르지 않습니다.",
+          rejected: "로그인이 거절되었습니다.",
+          expired: "승인 시간이 지났습니다. 다시 시도해 주세요.",
+          timeout: "승인 시간이 지났습니다. 다시 시도해 주세요."
+        }[e.message] || "서버 오류가 발생했습니다.";
+        errEl.textContent = msg;
+        document.getElementById("loginPassword").value = "";
+        loginPending = false;
+        return;
+      }
+
+      loginPending = false;
+      closeLoginModal();
+      updateMenu();
+      showToast(`${session.email}님, 로그인되었습니다.`);
+    }
+
+    function showView(name) {
+      document.getElementById("viewHome").classList.toggle("show", name === "home");
+      document.getElementById("viewPython").classList.toggle("show", name === "python");
+      toggleMenu(false);
+      if (name === "python") {
+        loadPython();
+        document.getElementById("codeArea").focus();
+      }
+      window.scrollTo(0, 0);
+    }
+
+    function loadPython() {
+      if (pyPromise) return pyPromise;
+      const status = document.getElementById("pyStatus");
+      const runBtn = document.getElementById("runBtn");
+      status.textContent = "Python 엔진 준비 중... (처음에는 시간이 조금 걸립니다)";
+      pyPromise = loadPyodide()
+        .then((py) => {
+          status.textContent = "Python 준비 완료";
+          runBtn.disabled = false;
+          return py;
+        })
+        .catch(() => {
+          status.textContent = "Python 엔진을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.";
+          pyPromise = null;
+          throw new Error("load failed");
+        });
+      return pyPromise;
+    }
+
+    async function runPython() {
+      const code = document.getElementById("codeArea").value;
+      const out = document.getElementById("output");
+      const runBtn = document.getElementById("runBtn");
+      out.textContent = "";
+      out.classList.remove("error");
+
+      if (!code.trim()) {
+        out.textContent = "코드를 입력해 주세요.";
+        return;
+      }
+
+      runBtn.disabled = true;
+      try {
+        const py = await loadPython();
+        py.setStdout({ batched: (s) => { out.textContent += s + "\n"; } });
+        py.setStderr({ batched: (s) => { out.textContent += s + "\n"; } });
+        await py.runPythonAsync(code);
+        if (!out.textContent) out.textContent = "(출력 없음)";
+      } catch (e) {
+        out.classList.add("error");
+        out.textContent += String(e);
+      } finally {
+        runBtn.disabled = false;
+      }
+    }
+
+    function onCodeKeydown(e) {
+      if (e.key !== "Tab") return;
+      e.preventDefault();
+      const ta = e.target;
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      ta.value = ta.value.slice(0, start) + "    " + ta.value.slice(end);
+      ta.selectionStart = ta.selectionEnd = start + 4;
+    }
+
+    function setupEvents() {
+      const menuBtn = document.getElementById("menuBtn");
+      menuBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleMenu(); });
+      document.addEventListener("click", (e) => {
+        if (!document.querySelector(".menu-wrap").contains(e.target)) toggleMenu(false);
+      });
+
+      document.getElementById("menuPython").addEventListener("click", () => showView("python"));
+      document.getElementById("menuLogin").addEventListener("click", onMenuLoginClick);
+      
+      document.querySelectorAll(".home-link").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          e.preventDefault();
+          location.href = location.pathname + location.search;
+        });
+      });
+
+      document.querySelectorAll(".section-toggle").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const targetId = btn.getAttribute("data-target");
+          const content = document.getElementById(targetId);
+          btn.classList.toggle("active");
+          content.classList.toggle("show");
+        });
+      });
+
+      document.getElementById("runBtn").addEventListener("click", runPython);
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        document.getElementById("output").textContent = "";
+        document.getElementById("output").classList.remove("error");
+      });
+      document.getElementById("codeArea").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); runPython(); return; }
+        onCodeKeydown(e);
+      });
+
+      document.getElementById("loginSubmit").addEventListener("click", submitLogin);
+      document.getElementById("loginPassword").addEventListener("keydown", (e) => { if (e.key === "Enter") submitLogin(); });
+      document.getElementById("githubLogin").addEventListener("click", loginWithGithub);
+      document.getElementById("loginCancel").addEventListener("click", closeLoginModal);
+      document.getElementById("loginModal").addEventListener("click", (e) => {
+        if (e.target.id === "loginModal") closeLoginModal();
+      });
+    }
+
+    async function init() {
+      setupEvents();
+      updateMenu();
+      await handleOAuthReturn();
+      if (isLoggedIn()) {
+        await ensureSession();
+        await refreshProFlag();
+        updateMenu();
+      }
+      if (location.hash === "#python") showView("python");
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
