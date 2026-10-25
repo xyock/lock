@@ -1,0 +1,879 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b0a">
+  <title>lock AI</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #080b0a;
+      --panel: #101513;
+      --panel2: #151c18;
+      --border: #27332c;
+      --mint: #8affbd;
+      --mint-dark: #4de994;
+      --text: #edf5ef;
+      --muted: #89968d;
+      --danger: #ff7777;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    button, input, textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 70px;
+      padding: 0 25px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(8, 11, 10, .96);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -.6px;
+    }
+
+    .logo {
+      width: 35px;
+      height: 35px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      color: #06110a;
+      background: var(--mint);
+      font-weight: 900;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status {
+      color: var(--mint);
+      border: 1px solid #294a36;
+      background: #101d15;
+      padding: 7px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+    }
+
+    .status::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--mint-dark);
+      margin-right: 7px;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 13px;
+      color: var(--text);
+      background: var(--panel2);
+      transition: .15s;
+    }
+
+    .btn:hover {
+      border-color: var(--mint);
+    }
+
+    .btn-primary {
+      color: #07130b;
+      background: var(--mint);
+      border-color: var(--mint);
+      font-weight: 750;
+    }
+
+    .btn-primary:hover {
+      background: var(--mint-dark);
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 25px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 125px);
+    }
+
+    .welcome {
+      margin: auto 0;
+      padding: 45px 0;
+      text-align: center;
+    }
+
+    .welcome-icon {
+      width: 65px;
+      height: 65px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 20px;
+      border-radius: 22px;
+      background: #13251a;
+      border: 1px solid #31573d;
+      color: var(--mint);
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .welcome h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      letter-spacing: -1.4px;
+      margin: 0 0 13px;
+    }
+
+    .welcome h1 span {
+      color: var(--mint);
+    }
+
+    .welcome p {
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 9px;
+      margin-top: 26px;
+    }
+
+    .suggestion {
+      color: #c8d7cc;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+
+    .suggestion:hover {
+      border-color: var(--mint);
+      color: var(--mint);
+    }
+
+    #chat {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      padding: 10px 0 25px;
+    }
+
+    .message {
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+      max-width: 100%;
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      flex: 0 0 32px;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: #14251a;
+      border: 1px solid #294b35;
+      color: var(--mint);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .user .avatar {
+      background: #252b27;
+      color: white;
+      border-color: #414a43;
+    }
+
+    .bubble {
+      max-width: min(690px, calc(100% - 45px));
+      padding: 13px 16px;
+      border-radius: 4px 15px 15px 15px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      line-height: 1.75;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .user .bubble {
+      background: #173222;
+      border-color: #2b5940;
+      border-radius: 15px 4px 15px 15px;
+    }
+
+    .bubble pre {
+      overflow-x: auto;
+      padding: 13px;
+      background: #060907;
+      border: 1px solid #29372d;
+      border-radius: 9px;
+      white-space: pre;
+    }
+
+    .composer-wrap {
+      position: sticky;
+      bottom: 0;
+      padding: 12px 0 4px;
+      margin-top: auto;
+      background: linear-gradient(transparent, var(--bg) 18%);
+    }
+
+    .composer {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 11px;
+      background: var(--panel);
+      border: 1px solid #34473a;
+      border-radius: 17px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.2);
+    }
+
+    .composer:focus-within {
+      border-color: var(--mint-dark);
+    }
+
+    #question {
+      flex: 1;
+      min-width: 0;
+      resize: none;
+      max-height: 180px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 8px 5px;
+      line-height: 1.6;
+    }
+
+    #question::placeholder {
+      color: #748178;
+    }
+
+    .send {
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--mint);
+      color: #06110a;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .send:hover {
+      background: var(--mint-dark);
+    }
+
+    .footnote {
+      text-align: center;
+      font-size: 11px;
+      color: #6e7a71;
+      padding: 12px 0 0;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0,0,0,.75);
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 390px;
+      padding: 25px;
+      border: 1px solid var(--border);
+      border-radius: 19px;
+      background: #101511;
+      box-shadow: 0 20px 80px rgba(0,0,0,.45);
+    }
+
+    .modal h2 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .modal p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0 0 20px;
+    }
+
+    .field {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 12px 13px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #080b09;
+      color: var(--text);
+      outline: 0;
+    }
+
+    .field:focus {
+      border-color: var(--mint-dark);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .modal-actions button {
+      flex: 1;
+    }
+
+    .modal-error {
+      min-height: 18px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--danger);
+      line-height: 1.5;
+    }
+
+    #toast {
+      position: fixed;
+      left: 50%;
+      bottom: 25px;
+      z-index: 40;
+      transform: translate(-50%, 15px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s;
+      max-width: calc(100% - 30px);
+      padding: 11px 16px;
+      border-radius: 11px;
+      background: #e7f9ec;
+      color: #102117;
+      font-size: 13px;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 600px) {
+      header {
+        padding: 0 14px;
+        height: 62px;
+      }
+
+      .brand {
+        font-size: 18px;
+      }
+
+      .status {
+        display: none;
+      }
+
+      main {
+        padding: 15px 13px;
+      }
+
+      .welcome {
+        padding: 35px 0;
+      }
+
+      .suggestions {
+        flex-direction: column;
+      }
+
+      .suggestion {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">L</div>
+        <span>lock AI</span>
+      </div>
+
+      <div class="header-right">
+        <div class="status">Local Qwen AI</div>
+        <button class="btn" id="clearBtn" type="button">
+          새 대화
+        </button>
+        <button class="btn btn-primary" id="loginBtn" type="button">
+          로그인
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="welcome" id="welcome">
+        <div class="welcome-icon">L</div>
+        <h1>무엇이든 <span>물어보세요.</span></h1>
+        <p>
+          나만의 로컬 AI, lock AI<br>
+          질문과 코드 작성에 도움을 받아 보세요.
+        </p>
+
+        <div class="suggestions">
+          <button class="suggestion" data-prompt="파이썬 초보자를 위한 예제를 만들어 줘.">
+            파이썬 코드 작성하기
+          </button>
+          <button class="suggestion" data-prompt="HTML과 CSS의 차이를 쉽게 설명해 줘.">
+            프로그래밍 배우기
+          </button>
+          <button class="suggestion" data-prompt="내가 만들 수 있는 웹 프로젝트 아이디어 5개를 추천해 줘.">
+            프로젝트 아이디어 얻기
+          </button>
+        </div>
+      </section>
+
+      <section id="chat" aria-live="polite"></section>
+
+      <div class="composer-wrap">
+        <form class="composer" id="chatForm">
+          <textarea
+            id="question"
+            rows="1"
+            placeholder="lock AI에게 메시지 보내기..."
+            aria-label="질문 입력"
+            required
+          ></textarea>
+
+          <button class="send" id="sendBtn" type="submit" aria-label="보내기">
+            ↑
+          </button>
+        </form>
+
+        <div class="footnote">
+          로컬 AI 답변은 틀릴 수 있으니 중요한 정보는 확인해 주세요.
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="loginModal">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h2 id="modalTitle">lock AI 로그인</h2>
+      <p>로그인하거나 계정을 만들어 보세요.</p>
+
+      <form id="authForm">
+        <input
+          class="field"
+          id="email"
+          type="email"
+          placeholder="이메일"
+          autocomplete="email"
+          required
+        >
+
+        <input
+          class="field"
+          id="password"
+          type="password"
+          placeholder="비밀번호 (6자 이상)"
+          autocomplete="current-password"
+          minlength="6"
+          required
+        >
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="submit" id="authSubmit">
+            로그인
+          </button>
+          <button class="btn" type="button" id="signupBtn">
+            회원가입
+          </button>
+        </div>
+
+        <div class="modal-error" id="authError" role="status"></div>
+      </form>
+
+      <button class="btn" type="button" id="closeModal"
+        style="width:100%; margin-top:8px;">
+        닫기
+      </button>
+    </section>
+  </div>
+
+  <div id="toast" role="status"></div>
+
+  <script>
+    /*
+      기존 Supabase 프로젝트 정보를 입력하세요.
+      Supabase Dashboard의 Project URL과 publishable key를 사용합니다.
+      service_role 키는 절대 브라우저에 넣지 마세요.
+    */
+    const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY";
+
+    let supabaseClient = null;
+    let currentUser = null;
+    let isLoading = false;
+
+    if (
+      window.supabase &&
+      SUPABASE_URL.startsWith("https://") &&
+      !SUPABASE_URL.includes("YOUR_SUPABASE")
+      && SUPABASE_ANON_KEY
+      && !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE")
+    ) {
+      supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+    }
+
+    const welcome = document.getElementById("welcome");
+    const chat = document.getElementById("chat");
+    const questionInput = document.getElementById("question");
+    const sendBtn = document.getElementById("sendBtn");
+    const loginBtn = document.getElementById("loginBtn");
+    const loginModal = document.getElementById("loginModal");
+    const authError = document.getElementById("authError");
+    const authSubmit = document.getElementById("authSubmit");
+    const toast = document.getElementById("toast");
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2600);
+    }
+
+    function openLogin() {
+      authError.textContent = "";
+      loginModal.classList.add("show");
+    }
+
+    function closeLogin() {
+      loginModal.classList.remove("show");
+    }
+
+    function updateAuthUI() {
+      loginBtn.textContent = currentUser
+        ? "로그아웃"
+        : "로그인";
+    }
+
+    async function refreshSession() {
+      if (!supabaseClient) {
+        updateAuthUI();
+        return;
+      }
+
+      const { data, error } = await supabaseClient.auth.getSession();
+
+      if (error) {
+        console.error("세션 확인 오류:", error.message);
+        return;
+      }
+
+      currentUser = data.session?.user ?? null;
+      updateAuthUI();
+
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        currentUser = session?.user ?? null;
+        updateAuthUI();
+      });
+    }
+
+    loginBtn.addEventListener("click", async () => {
+      if (!currentUser) {
+        openLogin();
+        return;
+      }
+
+      if (!supabaseClient) {
+        showToast("Supabase 설정을 확인해 주세요.");
+        return;
+      }
+
+      const { error } = await supabaseClient.auth.signOut();
+
+      if (error) {
+        showToast("로그아웃 실패: " + error.message);
+        return;
+      }
+
+      currentUser = null;
+      updateAuthUI();
+      showToast("로그아웃했습니다.");
+    });
+
+    document.getElementById("closeModal").addEventListener("click", closeLogin);
+
+    loginModal.addEventListener("click", (event) => {
+      if (event.target === loginModal) closeLogin();
+    });
+
+    document.getElementById("authForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!supabaseClient) {
+        authError.textContent =
+          "Supabase URL과 공개 키를 코드에 입력해 주세요.";
+        return;
+      }
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      authSubmit.disabled = true;
+      authError.textContent = "";
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        currentUser = data.user;
+        updateAuthUI();
+        closeLogin();
+        showToast("로그인했습니다.");
+      } catch (error) {
+        authError.textContent = error.message || "로그인에 실패했습니다.";
+      } finally {
+        authSubmit.disabled = false;
+      }
+    });
+
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      if (!supabaseClient) {
+        authError.textContent =
+          "Supabase URL과 공개 키를 코드에 입력해 주세요.";
+        return;
+      }
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!email || password.length < 6) {
+        authError.textContent =
+          "이메일과 6자 이상의 비밀번호를 입력해 주세요.";
+        return;
+      }
+
+      const signupBtn = document.getElementById("signupBtn");
+      signupBtn.disabled = true;
+      authError.textContent = "";
+
+      try {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        if (data.session) {
+          currentUser = data.user;
+          updateAuthUI();
+          closeLogin();
+          showToast("회원가입이 완료되었습니다.");
+        } else {
+          authError.textContent =
+            "가입 요청이 완료되었습니다. 이메일 인증이 필요할 수 있습니다.";
+        }
+      } catch (error) {
+        authError.textContent =
+          error.message || "회원가입에 실패했습니다.";
+      } finally {
+        signupBtn.disabled = false;
+      }
+    });
+
+    function addMessage(text, role) {
+      welcome.style.display = "none";
+
+      const message = document.createElement("div");
+      message.className = "message " + role;
+
+      const avatar = document.createElement("div");
+      avatar.className = "avatar";
+      avatar.textContent = role === "user" ? "나" : "L";
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+
+      // 모델 응답을 HTML로 실행하지 않고 일반 텍스트로 표시합니다.
+      bubble.textContent = text;
+
+      message.appendChild(avatar);
+      message.appendChild(bubble);
+      chat.appendChild(message);
+
+      message.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+      });
+
+      return message;
+    }
+
+    async function sendMessage(text) {
+      const query = text.trim();
+
+      if (!query || isLoading) return;
+
+      addMessage(query, "user");
+      questionInput.value = "";
+      questionInput.style.height = "auto";
+
+      isLoading = true;
+      sendBtn.disabled = true;
+
+      const loadingMessage = addMessage("답변을 생성하고 있습니다...", "assistant");
+
+      try {
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ q: query })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          throw new Error(data.error || "AI 요청에 실패했습니다.");
+        }
+
+        loadingMessage.querySelector(".bubble").textContent =
+          data.answer || "AI가 빈 답변을 반환했습니다.";
+
+      } catch (error) {
+        console.error("AI 연결 오류:", error);
+
+        loadingMessage.querySelector(".bubble").textContent =
+          "AI 연결에 실패했습니다.\n\n" +
+          (error.message || "알 수 없는 오류") +
+          "\n\nOllama와 app.py 서버가 실행 중인지 확인해 주세요.";
+      } finally {
+        isLoading = false;
+        sendBtn.disabled = false;
+        questionInput.focus();
+      }
+    }
+
+    document.getElementById("chatForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      sendMessage(questionInput.value);
+    });
+
+    questionInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+
+        if (!isLoading) {
+          sendMessage(questionInput.value);
+        }
+      }
+    });
+
+    questionInput.addEventListener("input", () => {
+      questionInput.style.height = "auto";
+      questionInput.style.height =
+        Math.min(questionInput.scrollHeight, 180) + "px";
+    });
+
+    document.querySelectorAll("[data-prompt]").forEach((button) => {
+      button.addEventListener("click", () => {
+        sendMessage(button.dataset.prompt);
+      });
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      if (isLoading) {
+        showToast("답변 생성이 끝난 뒤 새 대화를 시작해 주세요.");
+        return;
+      }
+
+      chat.replaceChildren();
+      welcome.style.display = "";
+      questionInput.value = "";
+      questionInput.focus();
+    });
+
+    refreshSession();
+  </script>
+</body>
+</html>
