@@ -1090,20 +1090,20 @@ int main() {
           const details = data.error || `서버 오류 (${response.status})`;
 
           if (response.status === 429) {
-            throw new Error("요청 한도에 도달했습니다. 잠시 후 다시 시도해 주세요.");
+            throw new Error("limit reached.");
           }
 
           if (response.status === 401 || response.status === 403) {
-            throw new Error("Supabase 함수 권한 설정을 확인해 주세요.");
+            throw new Error("Supabase error.");
           }
 
           throw new Error(details);
         }
 
-        pending.textContent = data.answer || "AI가 답변을 반환하지 않았습니다.";
+        pending.textContent = data.answer || "AI didn't respond.";
       } catch (error) {
         pending.textContent =
-          `xyock에 연결하지 못했습니다. ${error.message || "Supabase Edge Function 설정을 확인해 주세요."}`;
+          `xyock에 연결하지 못했습니다. ${error.message || "Supabase Edge Function error."}`;
 
         pending.parentElement?.classList.add("error");
       }
@@ -1120,7 +1120,7 @@ int main() {
         text = await navigator.clipboard.readText();
       } catch {
         addAIMessage(
-          "클립보드를 읽지 못했습니다. 브라우저의 클립보드 권한을 허용하고 다시 + 를 눌러 주세요.",
+          "클립보드를 읽지 못했습니다.클립보드 권한을 허용하고 다시 + 를 눌러 주세요.",
           "error"
         );
         return;
@@ -1129,7 +1129,7 @@ int main() {
       text = sanitize(text).slice(0, MAX_FILE_BYTES);
 
       if (!text.trim()) {
-        addAIMessage("클립보드가 비어 있습니다. 코드를 먼저 복사해 주세요.", "error");
+        addAIMessage("코드를 먼저 복사해 주세요.", "error");
         return;
       }
 
