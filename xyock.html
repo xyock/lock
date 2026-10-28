@@ -485,7 +485,7 @@
       <div class="modal-error" id="loginError"></div>
       <div class="modal-buttons">
         <button class="modal-btn primary" id="loginSubmit" type="button">Login</button>
-        <button class="modal-btn" id="loginCancel" type="button">Cancel</button>
+        <button class="modal-btn" id="githubLogin" type="button">GitHub로 로그인</button><button class="modal-btn" id="loginCancel" type="button">Cancel</button>
       </div>
     </div>
   </div>
@@ -1363,6 +1363,8 @@ int main() {
     }
 
     async function init() {
+      const oauthHash = new URLSearchParams(location.hash.replace(/^#/, ""));
+      if (oauthHash.get("access_token") && oauthHash.get("refresh_token")) { try { const r = await fetch(AUTH_URL + "/user", {headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+oauthHash.get("access_token")}}); if(r.ok){ const u=await r.json(); saveSession({access_token:oauthHash.get("access_token"),refresh_token:oauthHash.get("refresh_token"),expires_at:Number(oauthHash.get("expires_at"))||Math.floor(Date.now()/1000)+3600,email:(u.email||"").toLowerCase(),user_id:u.id}); history.replaceState(null,"",location.pathname+location.search); } } catch {} }
       setupEvents();
       updateUI();
       loadSharedTerms().catch(() => {});
@@ -1396,6 +1398,7 @@ int main() {
         showToast("모델 변경: " + option.querySelector(".model-name").textContent);
       });
       document.getElementById("loginSubmit").addEventListener("click", submitLogin);
+      document.getElementById("githubLogin").addEventListener("click", () => { location.href = AUTH_URL + "/authorize?provider=github&redirect_to=" + encodeURIComponent(location.origin + location.pathname); });
       document.getElementById("loginCancel").addEventListener("click", closeLoginModal);
 
       document.getElementById("loginPassword").addEventListener("keydown", e => {
