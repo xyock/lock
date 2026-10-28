@@ -4,13 +4,13 @@
   "short_name": "xyock",
   "icons": [
     {
-      "src": "/lock/web-app-manifest-192x192.png?v=1",
+      "src": "/lock/favicon-3/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/lock/web-app-manifest-512x512.png?v=1",
+      "src": "/lock/favicon-3/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
