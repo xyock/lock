@@ -781,6 +781,32 @@
       loginBtn.classList.toggle("logged-in", loggedIn);
     }
 
+    function getSelectedModel() {
+      try {
+        const saved = localStorage.getItem(MODEL_STORAGE_KEY);
+        return FREE_MODELS.includes(saved) ? saved : DEFAULT_MODEL;
+      } catch { return DEFAULT_MODEL; }
+    }
+
+    function openModelModal() {
+      updateModelOptions();
+      document.getElementById("modelModal").classList.add("show");
+    }
+
+    function closeModelModal() {
+      document.getElementById("modelModal").classList.remove("show");
+    }
+
+    function updateModelOptions() {
+      const selected = getSelectedModel();
+      document.querySelectorAll("#modelOptions [data-model]").forEach(option => {
+        const active = option.dataset.model === selected;
+        option.classList.toggle("selected", active);
+        option.setAttribute("aria-pressed", String(active));
+        option.querySelector(".model-check").textContent = active ? "✓" : "";
+      });
+    }
+
     async function apiRaw(url, options = {}) {
       const token = isLoggedIn() ? session.access_token : SUPABASE_ANON_KEY;
 
@@ -1081,7 +1107,7 @@ int main() {
             "apikey": SUPABASE_ANON_KEY,
             "Authorization": `Bearer ${isLoggedIn() ? session.access_token : SUPABASE_ANON_KEY}`
           },
-          body: JSON.stringify({ q: question })
+          body: JSON.stringify({ q: question, model: getSelectedModel() })
         });
 
         const data = await response.json().catch(() => ({}));
@@ -1267,6 +1293,16 @@ int main() {
       sendBtn.addEventListener("click", sendMessage);
 
       document.getElementById("loginBtn").addEventListener("click", openLoginModal);
+      document.getElementById("modelPickerBtn").addEventListener("click", openModelModal);
+      document.getElementById("modelModalClose").addEventListener("click", closeModelModal);
+      document.getElementById("modelOptions").addEventListener("click", e => {
+        const option = e.target.closest("[data-model]");
+        if (!option || !FREE_MODELS.includes(option.dataset.model)) return;
+        localStorage.setItem(MODEL_STORAGE_KEY, option.dataset.model);
+        updateModelOptions();
+        closeModelModal();
+        showToast("모델 변경: " + option.querySelector(".model-name").textContent);
+      });
       document.getElementById("loginSubmit").addEventListener("click", submitLogin);
       document.getElementById("loginCancel").addEventListener("click", closeLoginModal);
 
@@ -1277,7 +1313,8 @@ int main() {
       document.getElementById("clipBtn").addEventListener("click", handleClipboard);
 
       const backdrops = {
-        loginModal: closeLoginModal
+        loginModal: closeLoginModal,
+        modelModal: closeModelModal
       };
 
       for (const [id, close] of Object.entries(backdrops)) {
