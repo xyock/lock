@@ -512,6 +512,15 @@
     const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
     const LOGIN_POLL_MS = 3000;
     const LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
+    const MODEL_STORAGE_KEY = "xyock_selected_model";
+    const DEFAULT_MODEL = "nvidia/nemotron-3.5-super-vl:free";
+    const FREE_MODELS = [
+      "poolside/laguna-s-2.1:free",
+      "nvidia/nemotron-3.5-super-vl:free",
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "dots-studio/dots-3-note-preview:free",
+      "kilo-auto/free"
+    ];
 
     const DEFAULT_TERMS = {
       "AI": "AI is a short form of artificial intelligence. Artificial Intelligence is a computer system that learns patterns from data and makes decisions automatically.",
