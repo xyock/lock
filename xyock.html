@@ -1410,7 +1410,7 @@ int main() {
           if (file.size > MAX_FILE_BYTES) { showToast(file.name + ": 파일은 5MB 이하만 첨부할 수 있어요."); continue; }
           if (selectedAttachments.some(f => f.name === file.name && f.size === file.size)) continue;
           const isImage = file.type.startsWith("image/");
-          const isText = /^(text\\/|application\\/(json|xml))/.test(file.type) || /\\.(txt|md|csv|json|js|ts|jsx|tsx|html|css|py|java|c|cpp|h|sql|xml|ya?ml|log)$/i.test(file.name);
+          const isText = /^(text\/|application\/(json|xml))/.test(file.type) || /\.(txt|md|csv|json|js|ts|jsx|tsx|html|css|py|java|c|cpp|h|sql|xml|ya?ml|log)$/i.test(file.name);
           if (!isImage && !isText) { showToast(file.name + ": 이미지 또는 텍스트/코드 파일만 지원해요."); continue; }
           selectedAttachments.push({ file, name: file.name, size: file.size, type: file.type || (isText ? "text/plain" : "application/octet-stream"), isImage });
         }
