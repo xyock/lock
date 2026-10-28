@@ -356,6 +356,10 @@
     .btn-github:hover { background:#fff; border-color:#fff; }
     .login-divider { display:flex; align-items:center; gap:12px; color:#777; font-size:.85em; margin:16px 0; }
     .login-divider::before, .login-divider::after { content:""; flex:1; height:1px; background:#333; }
+    .history-modal-list { display:grid;gap:8px;max-height:50vh;overflow:auto;margin:14px 0; }
+    .history-item { display:flex;align-items:center;gap:8px;padding:10px;border:1px solid #333;border-radius:8px;background:#101010;color:var(--text); }
+    .history-open { flex:1;min-width:0;text-align:left;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    .history-delete { border:1px solid #633;background:transparent;color:#f99;border-radius:6px;padding:6px 9px;cursor:pointer; }
 
     .terms-list {
       max-height: 360px;
@@ -453,6 +457,7 @@
     <div class="header-icons">
       <span class="mode-indicator" id="modeIndicator">xyock</span>
       <div class="auth-col">
+        <button class="icon-btn" id="historyBtn" type="button" title="대화 기록" aria-label="대화 기록">☰</button>
         <button class="model-picker-btn" id="modelPickerBtn" type="button" title="AI 모델 선택" aria-label="AI 모델 선택"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 9.2 21.2 12 14.8 14.8 12 21.2 9.2 14.8 2.8 12 9.2 9.2Z"/><path d="M19 2.5 19.9 4.6 22 5.5 19.9 6.4 19 8.5 18.1 6.4 16 5.5 18.1 4.6Z"/></svg></button>
         <button class="login-btn" id="loginBtn" type="button">locked</button>
       </div>
@@ -494,6 +499,10 @@
     </div>
   </div>
 
+  <div class="modal" id="historyModal" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
+    <div class="modal-content"><div class="modal-title" id="historyModalTitle">대화 기록</div><p style="color:var(--muted);text-align:center;font-size:.9em">로그인한 계정에 저장되어 다른 기기에서도 확인할 수 있어요.</p><div class="history-modal-list" id="historyList"><div class="empty-message">기록을 불러오는 중…</div></div><div class="modal-buttons"><button class="modal-btn" id="newChatBtn" type="button">새 대화</button><button class="modal-btn" id="historyCloseBtn" type="button">닫기</button></div></div>
+  </div>
+
   <div class="modal" id="modelModal" role="dialog" aria-modal="true" aria-labelledby="modelModalTitle">
     <div class="modal-content">
       <div class="modal-title" id="modelModalTitle">Choose a model</div>
@@ -515,6 +524,10 @@
     const SUPABASE_URL = "https://lhbdijxjnqbzmrvrvrkr.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_e3oKyICzmGvyx1FFcO1dMQ_39veE0G4";
     const TABLE_URL = `${SUPABASE_URL}/rest/v1/terms`;
+    const CONVERSATIONS_URL = `${SUPABASE_URL}/rest/v1/chat_conversations`;
+    let currentConversationId = null;
+    let restoringConversation = false;
+    let saveQueue = Promise.resolve();
     const AUTH_URL = `${SUPABASE_URL}/auth/v1`;
     const FN_URL = `${SUPABASE_URL}/functions/v1`;
 
@@ -614,6 +627,7 @@
 
       msg.appendChild(bubble);
       chat.appendChild(msg);
+      if (!restoringConversation) queueSaveConversation();
       scrollToBottom();
 
       return bubble;
@@ -1193,6 +1207,7 @@ int main() {
         pending.parentElement?.classList.add("error");
       }
 
+      queueSaveConversation();
       scrollToBottom();
     }
 
@@ -1518,6 +1533,9 @@ int main() {
       sendBtn.addEventListener("click", sendMessage);
 
       document.getElementById("loginBtn").addEventListener("click", openLoginModal);
+      document.getElementById("historyBtn").addEventListener("click", openHistoryModal);
+      document.getElementById("historyCloseBtn").addEventListener("click", () => document.getElementById("historyModal").classList.remove("show"));
+      document.getElementById("newChatBtn").addEventListener("click", startNewConversation);
       document.getElementById("modelPickerBtn").addEventListener("click", openModelModal);
       document.getElementById("modelModalClose").addEventListener("click", closeModelModal);
       document.getElementById("modelOptions").addEventListener("click", e => {
