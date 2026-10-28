@@ -117,6 +117,19 @@
 
     .login-btn:hover { border-color: #555; color: #ccc; }
     .login-btn.logged-in { border-color: var(--accent); color: var(--accent); }
+    .model-picker-btn { width:40px;height:40px;flex:0 0 40px;display:grid;place-items:center;border:2px solid transparent;border-radius:8px;background:linear-gradient(#141414,#141414) padding-box,linear-gradient(135deg,#35c9b8,#e66ba8) border-box;cursor:pointer; }
+    .model-picker-btn svg { width:23px;height:23px; }
+    .model-picker-btn svg path:first-child { fill:#35c9b8; }
+    .model-picker-btn svg path:last-child { fill:#e66ba8; }
+    .model-picker-btn:hover { box-shadow:0 0 16px rgba(53,201,184,.22); }
+    .model-options { display:grid;gap:10px; }
+    .model-option { display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;text-align:left;border:1px solid #333;border-radius:9px;background:#101010;color:var(--text);cursor:pointer;font:inherit; }
+    .model-option:hover,.model-option.selected { border-color:#35c9b8;background:#171d1c; }
+    .model-mark { width:34px;height:34px;flex:0 0 34px;border-radius:10px;display:grid;place-items:center;font-size:.78em;font-weight:700;color:#07100f;background:linear-gradient(135deg,#35c9b8,#e66ba8); }
+    .model-copy { flex:1;min-width:0; }
+    .model-name { display:block;font-weight:600;margin-bottom:3px; }
+    .model-desc { display:block;color:var(--muted);font-size:.82em;line-height:1.4; }
+    .model-check { color:#35c9b8;font-size:1.1em; }
 
     .chat-container {
       flex: 1;
@@ -426,6 +439,7 @@
     <div class="header-icons">
       <span class="mode-indicator" id="modeIndicator">xyock</span>
       <div class="auth-col">
+        <button class="model-picker-btn" id="modelPickerBtn" type="button" title="AI 모델 선택" aria-label="AI 모델 선택"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 9.2 21.2 12 14.8 14.8 12 21.2 9.2 14.8 2.8 12 9.2 9.2Z"/><path d="M19 2.5 19.9 4.6 22 5.5 19.9 6.4 19 8.5 18.1 6.4 16 5.5 18.1 4.6Z"/></svg></button>
         <button class="login-btn" id="loginBtn" type="button">locked</button>
       </div>
     </div>
@@ -463,6 +477,21 @@
         <button class="modal-btn primary" id="loginSubmit" type="button">Login</button>
         <button class="modal-btn" id="loginCancel" type="button">Cancel</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modelModal" role="dialog" aria-modal="true" aria-labelledby="modelModalTitle">
+    <div class="modal-content">
+      <div class="modal-title" id="modelModalTitle">Choose a model</div>
+      <p style="color:var(--muted);text-align:center;line-height:1.5;margin:-12px 0 22px;font-size:.9em">무료 모델 5개 중 하나를 선택하세요.</p>
+      <div class="model-options" id="modelOptions">
+        <button class="model-option" type="button" data-model="poolside/laguna-s-2.1:free"><span class="model-mark">L</span><span class="model-copy"><span class="model-name">Laguna S 2.1</span><span class="model-desc">코딩과 개발 작업에 적합</span></span><span class="model-check"></span></button>
+        <button class="model-option" type="button" data-model="nvidia/nemotron-3.5-super-vl:free"><span class="model-mark">N</span><span class="model-copy"><span class="model-name">Nemotron 3.5 Super VL</span><span class="model-desc">일반 질문과 멀티모달 작업</span></span><span class="model-check"></span></button>
+        <button class="model-option" type="button" data-model="nvidia/nemotron-3-ultra-550b-a55b:free"><span class="model-mark">N</span><span class="model-copy"><span class="model-name">Nemotron 3 Ultra</span><span class="model-desc">추론과 복잡한 질문</span></span><span class="model-check"></span></button>
+        <button class="model-option" type="button" data-model="dots-studio/dots-3-note-preview:free"><span class="model-mark">D</span><span class="model-copy"><span class="model-name">Dots3-Note Preview</span><span class="model-desc">일반 대화와 문서 작업</span></span><span class="model-check"></span></button>
+        <button class="model-option" type="button" data-model="kilo-auto/free"><span class="model-mark">✦</span><span class="model-copy"><span class="model-name">Kilo Auto Free</span><span class="model-desc">사용 가능한 무료 모델을 자동 선택</span></span><span class="model-check"></span></button>
+      </div>
+      <div class="modal-buttons" style="margin-top:20px"><button class="modal-btn" id="modelModalClose" type="button">닫기</button></div>
     </div>
   </div>
 
