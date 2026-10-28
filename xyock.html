@@ -1079,7 +1079,7 @@ int main() {
           headers: {
             "Content-Type": "application/json",
             "apikey": SUPABASE_ANON_KEY,
-            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+            "Authorization": `Bearer ${isLoggedIn() ? session.access_token : SUPABASE_ANON_KEY}`
           },
           body: JSON.stringify({ q: question })
         });
@@ -1090,7 +1090,9 @@ int main() {
           const details = data.error || `서버 오류 (${response.status})`;
 
           if (response.status === 429) {
-            throw new Error("limit reached.");
+            showToast("Limit reached");
+            pending.parentElement?.remove();
+            return;
           }
 
           if (response.status === 401 || response.status === 403) {
