@@ -254,6 +254,11 @@
       color: #ccc;
     }
 
+    .attachment-list { display:flex; flex-wrap:wrap; gap:6px; max-width:820px; margin:0 auto 8px; }
+    .attachment-chip { display:flex; align-items:center; gap:8px; max-width:100%; padding:6px 10px; border:1px solid #333; border-radius:12px; color:#ccc; background:#141414; font-size:.82em; }
+    .attachment-chip span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .attachment-chip button { border:0; background:transparent; color:#aaa; cursor:pointer; font-size:1.1em; }
+
     .send-btn {
       background: #e0e0e0;
       color: #0a0a0a;
@@ -459,7 +464,7 @@
 
   <div class="input-section">
     <div class="input-wrapper">
-      <button class="round-btn attach-btn" id="clipBtn" type="button" title="클립보드 내용 붙여넣기" aria-label="클립보드 내용 붙여넣기"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4.5h6a2 2 0 0 1 2 2V20H7V6.5a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 4.5V3h6v1.5M10 9h4M10 12h4M10 15h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="round-btn attach-btn" id="attachBtn" type="button" title="사진 또는 파일 첨부" aria-label="사진 또는 파일 첨부"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><input id="fileInput" type="file" accept="image/*,.txt,.md,.csv,.json,.js,.ts,.jsx,.tsx,.html,.css,.py,.java,.c,.cpp,.h,.sql,.xml,.yaml,.yml,.log" multiple hidden /><div id="attachmentList" class="attachment-list" aria-live="polite"></div>
       <input
         id="searchInput"
         class="search-input"
@@ -513,6 +518,8 @@
     const MAX_DEFINITION_LEN = 2000;
     const MAX_CUSTOM_TERMS = 500;
     const MAX_FILE_BYTES = 5 * 1024 * 1024;
+    const MAX_ATTACHMENTS = 4;
+    let selectedAttachments = [];
     const SESSION_KEY = "lockai_session";
     const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
     const LOGIN_POLL_MS = 3000;
@@ -1066,15 +1073,18 @@ int main() {
     async function sendMessage() {
       const input = document.getElementById("searchInput");
       const query = sanitize(input.value).trim().slice(0, MAX_INPUT_LEN);
+      const attachments = selectedAttachments.slice();
 
-      if (!query) return;
+      if (!query && attachments.length === 0) return;
 
       lastActivity = Date.now();
 
       document.getElementById("welcome")?.remove();
-      addUserMessage(query);
+      addUserMessage([query || "첨부 파일을 확인해 줘.", ...attachments.map(f => `[첨부: ${f.name}]`)].join("\\n"));
 
       input.value = "";
+      selectedAttachments = [];
+      renderAttachments();
       document.getElementById("sendBtn").disabled = true;
 
       // 코드 생성 요청
@@ -1120,7 +1130,7 @@ int main() {
         return;
       }
 
-      await askLocalxyock(query);
+      await askLocalxyock(query || "첨부한 파일을 분석해 줘.", attachments);
     }
 
     function findTerm(query) {
@@ -1137,7 +1147,7 @@ int main() {
       appendMessage("ai", `[${key}]\n${allTerms[key]}`, "success");
     }
 
-    async function askLocalxyock(question) {
+    async function askLocalxyock(question, attachments = []) {
       const pending = appendMessage("ai", "xyock is responding…");
 
       try {
@@ -1150,7 +1160,7 @@ int main() {
             "apikey": SUPABASE_ANON_KEY,
             "Authorization": `Bearer ${isLoggedIn() ? session.access_token : SUPABASE_ANON_KEY}`
           },
-          body: JSON.stringify({ q: question, model: getSelectedModel() })
+          body: JSON.stringify({ q: question, model: getSelectedModel(), attachments: await Promise.all(attachments.map(serializeAttachment)) })
         });
 
         const data = await response.json().catch(() => ({}));
@@ -1180,6 +1190,47 @@ int main() {
       }
 
       scrollToBottom();
+    }
+
+    function updateSendButton() {
+      document.getElementById("sendBtn").disabled =
+        document.getElementById("searchInput").value.trim() === "" && selectedAttachments.length === 0;
+    }
+
+    function renderAttachments() {
+      const list = document.getElementById("attachmentList");
+      list.innerHTML = "";
+      selectedAttachments.forEach((item, index) => {
+        const chip = document.createElement("div");
+        chip.className = "attachment-chip";
+        const name = document.createElement("span");
+        name.textContent = (item.isImage ? "🖼 " : "📄 ") + item.name;
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", item.name + " 첨부 제거");
+        remove.addEventListener("click", () => {
+          selectedAttachments.splice(index, 1);
+          renderAttachments();
+          updateSendButton();
+        });
+        chip.append(name, remove);
+        list.appendChild(chip);
+      });
+    }
+
+    async function serializeAttachment(item) {
+      if (item.isImage) {
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(item.file);
+        });
+        return { name: item.name, type: item.type, data: dataUrl };
+      }
+      const text = await item.file.text();
+      return { name: item.name, type: item.type, text: text.slice(0, 100000) };
     }
 
     async function handleClipboard() {
@@ -1329,9 +1380,7 @@ int main() {
         if (e.key === "Enter") sendMessage();
       });
 
-      input.addEventListener("input", () => {
-        sendBtn.disabled = input.value.trim() === "";
-      });
+      input.addEventListener("input", updateSendButton);
 
       sendBtn.addEventListener("click", sendMessage);
 
@@ -1353,7 +1402,23 @@ int main() {
         if (e.key === "Enter") submitLogin();
       });
 
-      document.getElementById("clipBtn").addEventListener("click", handleClipboard);
+      document.getElementById("attachBtn").addEventListener("click", () => document.getElementById("fileInput").click());
+      document.getElementById("fileInput").addEventListener("change", async e => {
+        const files = Array.from(e.target.files || []);
+        for (const file of files) {
+          if (selectedAttachments.length >= MAX_ATTACHMENTS) { showToast("최대 4개까지 첨부할 수 있어요."); break; }
+          if (file.size > MAX_FILE_BYTES) { showToast(file.name + ": 파일은 5MB 이하만 첨부할 수 있어요."); continue; }
+          if (selectedAttachments.some(f => f.name === file.name && f.size === file.size)) continue;
+          const isImage = file.type.startsWith("image/");
+          const isText = /^(text\\/|application\\/(json|xml))/.test(file.type) || /\\.(txt|md|csv|json|js|ts|jsx|tsx|html|css|py|java|c|cpp|h|sql|xml|ya?ml|log)$/i.test(file.name);
+          if (!isImage && !isText) { showToast(file.name + ": 이미지 또는 텍스트/코드 파일만 지원해요."); continue; }
+          selectedAttachments.push({ file, name: file.name, size: file.size, type: file.type || (isText ? "text/plain" : "application/octet-stream"), isImage });
+        }
+        e.target.value = "";
+        renderAttachments();
+        updateSendButton();
+      });
+
 
       const backdrops = {
         loginModal: closeLoginModal,
