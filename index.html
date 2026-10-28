@@ -550,7 +550,7 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
 
     // ===== GitHub 로그인 (Supabase OAuth) =====
     // Supabase Dashboard의 Redirect URLs에도 이 주소를 등록해야 합니다.
-    const REDIRECT_URL = "https://xyock.github.io/x/homepage.html";
+    const REDIRECT_URL = "https://xyock.github.io/lock/";
     function loginWithGithub() {
       const url = `${AUTH_URL}/authorize?provider=github&redirect_to=${encodeURIComponent(REDIRECT_URL)}`;
       location.href = url;
