@@ -1092,7 +1092,7 @@ int main() {
         /^(?:create|write|make|generate)\s+(?:code|script)?\s*(?:in|for)?\s*(python|javascript|java|c\+\+|cpp|c|html)\s+(.+)/i
       );
 
-      if (codeMatch) {
+      if (!attachments.length && codeMatch) {
         const language = codeMatch[1];
         const request = codeMatch[2];
         const code = generateCode(language, request);
@@ -1102,7 +1102,7 @@ int main() {
       }
 
       // 맞춤법 검사 요청
-      if (query.match(/^check spelling|맞춤법 검사/i)) {
+      if (!attachments.length && query.match(/^check spelling|맞춤법 검사/i)) {
         const result = checkSpelling(query);
         addAIMessage(result, "success");
         return;
@@ -1118,14 +1118,14 @@ int main() {
         } catch {}
       }
 
-      if (key) {
+      if (!attachments.length && key) {
         showTerm(key);
         return;
       }
 
       const codeLang = detectLanguage(query);
 
-      if (codeLang) {
+      if (!attachments.length && codeLang) {
         addAIMessage(analyzeCode(codeLang, query), "success");
         return;
       }
