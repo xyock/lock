@@ -240,8 +240,13 @@
     .attach-btn {
       background: transparent;
       color: #888;
-      font-size: 1.5em;
-      line-height: 1;
+      padding: 9px;
+    }
+
+    .attach-btn svg {
+      width: 22px;
+      height: 22px;
+      display: block;
     }
 
     .attach-btn:hover {
@@ -454,7 +459,7 @@
 
   <div class="input-section">
     <div class="input-wrapper">
-      <button class="round-btn attach-btn" id="clipBtn" type="button" title="클립보드 코드 분석">+</button>
+      <button class="round-btn attach-btn" id="clipBtn" type="button" title="클립보드 내용 붙여넣기" aria-label="클립보드 내용 붙여넣기"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4.5h6a2 2 0 0 1 2 2V20H7V6.5a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 4.5V3h6v1.5M10 9h4M10 12h4M10 15h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
       <input
         id="searchInput"
         class="search-input"
@@ -1186,7 +1191,7 @@ int main() {
         text = await navigator.clipboard.readText();
       } catch {
         addAIMessage(
-          "클립보드를 읽지 못했습니다.클립보드 권한을 허용하고 다시 + 를 눌러 주세요.",
+          "클립보드를 읽지 못했습니다.클립보드 권한을 허용한 뒤 클립보드 버튼을 다시 눌러 주세요.",
           "error"
         );
         return;
