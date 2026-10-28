@@ -1366,6 +1366,133 @@ int main() {
       return outputs;
     }
 
+
+    function currentMessages() {
+      return Array.from(document.querySelectorAll("#chat .message")).map(el => ({
+        role: el.classList.contains("user") ? "user" : "assistant",
+        content: el.querySelector(".bubble")?.textContent || ""
+      })).filter(m => m.content.trim()).slice(-200);
+    }
+
+    function queueSaveConversation() {
+      if (restoringConversation || !session?.user_id) return;
+      const messages = currentMessages();
+      if (!messages.length) return;
+      saveQueue = saveQueue.then(() => persistConversation(messages)).catch(err => {
+        console.error("conversation save failed", err);
+        showToast("대화 저장 실패: " + err.message);
+      });
+    }
+
+    async function persistConversation(messages) {
+      if (!session?.user_id || !await ensureSession()) return;
+      const payload = {
+        user_id: session.user_id,
+        title: (messages.find(m => m.role === "user")?.content || "새 대화").replace(/\s+/g, " ").slice(0, 80),
+        messages,
+        updated_at: new Date().toISOString()
+      };
+      const url = currentConversationId
+        ? CONVERSATIONS_URL + "?id=eq." + encodeURIComponent(currentConversationId)
+        : CONVERSATIONS_URL;
+      const res = await fetch(url, {
+        method: currentConversationId ? "PATCH" : "POST",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + session.access_token,
+          "Content-Type": "application/json",
+          Prefer: currentConversationId ? "return=minimal" : "return=representation"
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status + ": " + (await res.text()).slice(0, 160));
+      if (!currentConversationId) {
+        const rows = await res.json();
+        currentConversationId = rows?.[0]?.id || null;
+      }
+    }
+
+    async function openHistoryModal() {
+      const modal = document.getElementById("historyModal");
+      const list = document.getElementById("historyList");
+      modal.classList.add("show");
+      list.replaceChildren();
+      if (!session?.user_id || !await ensureSession()) {
+        list.textContent = "다른 기기에서 대화 기록을 보려면 먼저 로그인해 주세요.";
+        return;
+      }
+      list.textContent = "불러오는 중…";
+      try {
+        const res = await fetch(CONVERSATIONS_URL + "?select=id,title,updated_at&order=updated_at.desc&limit=100", {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + session.access_token }
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const rows = await res.json();
+        list.replaceChildren();
+        if (!rows.length) { list.textContent = "저장된 대화가 없습니다."; return; }
+        rows.forEach(row => {
+          const item = document.createElement("div");
+          item.className = "history-item";
+          const open = document.createElement("button");
+          open.type = "button"; open.className = "history-open";
+          open.textContent = row.title || "새 대화";
+          open.addEventListener("click", () => restoreConversation(row.id));
+          const del = document.createElement("button");
+          del.type = "button"; del.className = "history-delete"; del.textContent = "삭제";
+          del.addEventListener("click", async () => {
+            if (!confirm("이 대화를 삭제할까요?")) return;
+            const dr = await fetch(CONVERSATIONS_URL + "?id=eq." + encodeURIComponent(row.id), {
+              method: "DELETE",
+              headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + session.access_token }
+            });
+            if (!dr.ok) { showToast("삭제 실패: HTTP " + dr.status); return; }
+            if (currentConversationId === row.id) currentConversationId = null;
+            openHistoryModal();
+          });
+          item.append(open, del); list.append(item);
+        });
+      } catch (err) {
+        list.textContent = "대화 기록 오류: " + err.message;
+      }
+    }
+
+    async function restoreConversation(id) {
+      try {
+        await saveQueue;
+        const res = await fetch(CONVERSATIONS_URL + "?select=id,title,messages&id=eq." + encodeURIComponent(id) + "&limit=1", {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + session.access_token }
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const rows = await res.json();
+        if (!rows[0]) throw new Error("대화를 찾을 수 없습니다.");
+        restoringConversation = true;
+        const chat = document.getElementById("chat");
+        chat.replaceChildren();
+        currentConversationId = rows[0].id;
+        (Array.isArray(rows[0].messages) ? rows[0].messages : []).forEach(m =>
+          appendMessage(m.role === "user" ? "user" : "ai", m.content || "")
+        );
+        restoringConversation = false;
+        document.getElementById("historyModal").classList.remove("show");
+        showToast("대화를 불러왔습니다.");
+      } catch (err) {
+        restoringConversation = false;
+        showToast("불러오기 실패: " + err.message);
+      }
+    }
+
+    function startNewConversation() {
+      currentConversationId = null;
+      const chat = document.getElementById("chat");
+      chat.replaceChildren();
+      const welcome = document.createElement("div");
+      welcome.className = "welcome"; welcome.id = "welcome";
+      const h = document.createElement("h1"); h.textContent = "How can I help?";
+      const p = document.createElement("p"); p.textContent = "Ask xyock about anything, explain code, or get help writing code";
+      welcome.append(h, p); chat.append(welcome);
+      document.getElementById("historyModal").classList.remove("show");
+    }
+
     async function init() {
       const oauthHash = new URLSearchParams(location.hash.replace(/^#/, ""));
       if (oauthHash.get("access_token") && oauthHash.get("refresh_token")) { try { const r = await fetch(AUTH_URL + "/user", {headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+oauthHash.get("access_token")}}); if(r.ok){ const u=await r.json(); saveSession({access_token:oauthHash.get("access_token"),refresh_token:oauthHash.get("refresh_token"),expires_at:Number(oauthHash.get("expires_at"))||Math.floor(Date.now()/1000)+3600,email:(u.email||"").toLowerCase(),user_id:u.id}); history.replaceState(null,"",location.pathname+location.search); } } catch {} }
