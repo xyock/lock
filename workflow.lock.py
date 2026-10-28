@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Lock AI Workflow - Simple Python version"""
+"""xyock Workflow - Simple Python version"""
 
 import json
 import os
 from datetime import datetime
 
 
-class LockAI:
+class xyock:
     def __init__(self, file='ai_terms.json'):
         self.file = file
         self.terms = {}
@@ -117,7 +117,7 @@ class LockAI:
 
 # 사용 예제
 if __name__ == '__main__':
-    ai = LockAI()
+    ai = xyock()
     
     # 용어 추가
     ai.add('CNN', 'Convolutional Neural Network')
