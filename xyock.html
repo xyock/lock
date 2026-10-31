@@ -187,10 +187,9 @@
       padding: 0;
     }
 
-    /* xyock 전용 하단 입력 바: 검정 캡슐 + 민트 포인트 */
+    /* xyock custom black capsule composer */
     .input-section {
       padding: 18px 32px 28px;
-      border-top: 1px solid rgba(255,255,255,.045);
       background: linear-gradient(180deg, rgba(10,10,10,.88), #050505 34%);
       position: sticky;
       bottom: 0;
@@ -205,17 +204,17 @@
       min-height: 66px;
       margin: 0 auto;
       padding: 8px 12px;
-      background: #050505;
-      border: 1px solid #292929;
-      border-radius: 999px;
-      box-shadow: 0 10px 34px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.035);
-      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+      background: #303030;
+      border: 0;
+      border-radius: 28px;
+      box-shadow: none;
+      transition: background .2s ease;
     }
 
     .input-wrapper:focus-within {
-      border-color: rgba(122,229,179,.58);
-      background: #080b09;
-      box-shadow: 0 0 0 3px rgba(122,229,179,.055), 0 12px 38px rgba(0,0,0,.48);
+      border: 0;
+      background: #353535;
+      box-shadow: none;
     }
 
     input.search-input {
@@ -249,14 +248,14 @@
     .attach-btn {
       width: 42px;
       height: 42px;
-      background: #111;
+      background: transparent;
       color: #d8d8d8;
       padding: 10px;
-      border: 1px solid #252525;
+      border: 0;
     }
 
     .attach-btn svg { width: 21px; height: 21px; display: block; }
-    .attach-btn:hover { background: #1b1b1b; color: var(--accent); border-color: #3d5c4d; }
+    .attach-btn:hover { background: #454545; color: var(--accent); }
     .attach-btn:active, .send-btn:active { transform: scale(.94); }
 
     .send-btn {
@@ -266,7 +265,7 @@
       color: #06120c;
       font-size: 1.45em;
       font-weight: 700;
-      box-shadow: 0 0 0 3px rgba(122,229,179,.08);
+      box-shadow: none;
     }
 
     .send-btn:hover { background: #c5ffe5; transform: translateY(-1px); }
