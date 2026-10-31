@@ -2005,17 +2005,6 @@ int main() {
       document.getElementById("pluginModal").addEventListener("click", e => {
         if (e.target.id === "pluginModal") e.currentTarget.classList.remove("show");
       });
-      document.getElementById("ghActionType").addEventListener("change", updateGitHubActionFields);
-      document.getElementById("ghRequestBtn").addEventListener("click", createGitHubActionRequest);
-      document.getElementById("ghRefreshBtn").addEventListener("click", refreshGitHubActions);
-      document.getElementById("ghRepoSelect").addEventListener("change", () => {
-        const repo = document.getElementById("ghRepoSelect").value;
-        if (repo) showToast("선택한 저장소: " + repo);
-      });
-      updateGitHubActionFields();
-      document.getElementById("pluginBtn").addEventListener("click", () => {
-        if (session) refreshGitHubActions();
-      });
       document.getElementById("githubPluginConnect").addEventListener("click", () => {
         location.href = AUTH_URL + "/authorize?provider=github&redirect_to=" + encodeURIComponent(location.origin + location.pathname);
       });
