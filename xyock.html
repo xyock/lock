@@ -768,7 +768,10 @@
     }
 
     function addAIMessage(text, type = "normal") {
-      appendMessage("ai", text, type);
+      const bubble = appendMessage("ai", "", type);
+      typewriterText(bubble, text).then(() => {
+        if (!restoringConversation) queueSaveConversation();
+      });
     }
 
     function loadSession() {
@@ -1296,23 +1299,18 @@ int main() {
     }
 
     async function typewriterText(element, value) {
-      const text = String(value || "");
+      const text = String(value ?? "");
       element.textContent = "";
-      // 첫 글자를 즉시 보여주고, 긴 코드도 작은 묶음으로 부드럽게 출력합니다.
       if (!text) return;
-      element.textContent = text.slice(0, 1);
-      let index = 1;
-      const step = text.length > 12000 ? 48 : text.length > 4000 ? 24 : 8;
-      while (index < text.length) {
-        const next = Math.min(index + step, text.length);
-        element.textContent += text.slice(index, next);
-        index = next;
-        if (index % 240 < step) {
-          scrollToBottom();
-          await new Promise(resolve => setTimeout(resolve, 12));
-        } else {
-          await new Promise(resolve => setTimeout(resolve, 2));
-        }
+
+      // 일정한 속도로 조금씩 출력해 짧은 답변과 긴 코드 모두에서 효과가 보이게 합니다.
+      const step = text.length > 20000 ? 3 : text.length > 8000 ? 2 : 1;
+      const delay = text.length > 20000 ? 4 : text.length > 8000 ? 7 : 14;
+
+      for (let index = 0; index < text.length; index += step) {
+        element.textContent += text.slice(index, index + step);
+        if (index % 80 < step) scrollToBottom();
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
       scrollToBottom();
     }
