@@ -1830,12 +1830,8 @@ int main() {
         .replace(/\s+/g, " ").trim();
       if (!preference || /기억(?:하는|하기|기능|시스템).{0,12}(?:만들|구현|추가)/i.test(preference)) return false;
       preference = preference.slice(0, 300);
-      const memories = getLongTermMemories();
-      const normalized = preference.toLocaleLowerCase();
-      const existing = memories.findIndex(item => item.toLocaleLowerCase() === normalized);
-      if (existing >= 0) memories.splice(existing, 1);
-      memories.push(preference);
-      try { localStorage.setItem(XYOCK_MEMORY_KEY, JSON.stringify(memories.slice(-30))); }
+      // 새 기억 요청은 이전 선호를 전부 대체합니다.
+      try { localStorage.setItem(XYOCK_MEMORY_KEY, JSON.stringify([preference])); }
       catch { showToast("기억을 저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요."); return false; }
       showRememberIndicator();
       return true;
