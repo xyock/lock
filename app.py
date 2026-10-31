@@ -40,6 +40,15 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length",str(len(data))); self.send_header("X-Content-Type-Options","nosniff")
         self.end_headers(); self.wfile.write(data)
     def do_POST(self):
+        # Prevent cross-site requests and DNS-rebinding attempts against the local runner.
+        host = (self.headers.get("Host") or "").lower()
+        if host not in {"127.0.0.1:8000", "localhost:8000"}:
+            self.send_json(403,{"error":"Invalid host"}); return
+        origin = self.headers.get("Origin")
+        if origin and origin not in {"http://127.0.0.1:8000", "http://localhost:8000"}:
+            self.send_json(403,{"error":"Cross-origin requests are not allowed"}); return
+        if self.headers.get_content_type() != "application/json":
+            self.send_json(415,{"error":"Content-Type must be application/json"}); return
         if urlsplit(self.path).path != "/api/run":
             self.send_json(404,{"error":"Unknown endpoint"}); return
         try: length=int(self.headers.get("Content-Length","0"))
