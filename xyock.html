@@ -670,6 +670,25 @@
           <div id="sbAccountNotice" class="plugin-desc" role="status" aria-live="polite">Supabase 계정을 연결하면 여기에 조직과 프로젝트가 표시됩니다.</div>
         </div>
       </section>
+      <section class="github-action-panel" id="githubActionPanel" aria-label="GitHub 저장소 작업">
+        <div class="github-action-title">GitHub 저장소 작업</div>
+        <p class="plugin-desc" style="margin:0 0 12px">작업을 요청한 뒤 아래에서 내용을 확인하고 승인해야 실행됩니다.</p>
+        <div class="github-action-form">
+          <label>저장소<select id="ghRepoSelect" class="github-repo-select" disabled><option value="">로그인 후 불러옵니다.</option></select></label>
+          <label>작업<select id="ghActionType">
+            <option value="read_file">파일 읽기</option><option value="create_file">파일 생성</option><option value="update_file">파일 수정</option><option value="create_pull_request">Pull Request 생성</option><option value="deploy_pages">GitHub Pages 빌드 요청</option>
+          </select></label>
+          <label id="ghPathField">파일 경로<input id="ghTargetPath" type="text" placeholder="예: xyock.html" /></label>
+          <label id="ghContentField" hidden>파일 내용<textarea id="ghContent" placeholder="생성하거나 수정할 전체 파일 내용"></textarea></label>
+          <label id="ghMessageField" hidden>커밋 메시지<input id="ghCommitMessage" type="text" placeholder="예: Update application" /></label>
+          <label id="ghPrTitleField" hidden>Pull Request 제목<input id="ghPrTitle" type="text" /></label>
+          <label id="ghPrHeadField" hidden>Head 브랜치<input id="ghPrHead" type="text" placeholder="예: feature/update" /></label>
+          <label id="ghPrBodyField" hidden>설명<textarea id="ghPrBody"></textarea></label>
+          <div class="github-action-row"><button class="plugin-action" id="ghRefreshBtn" type="button">저장소·요청 새로고침</button><button class="plugin-action" id="ghRequestBtn" type="button">작업 요청</button></div>
+          <div id="ghActionNotice" class="plugin-desc" role="status" aria-live="polite">XYOCK 계정 로그인 후 사용할 수 있습니다.</div>
+          <div id="ghActionList" class="github-action-list" aria-live="polite"></div>
+        </div>
+      </section>
       <div class="plugin-desc" style="margin-top:14px">GitHub 저장소 파일 읽기와 코드 수정은 채팅에서 요청할 수 있도록 연결됩니다. 실제 변경은 승인 후에만 반영됩니다.</div>
       <div class="modal-buttons" style="margin-top:20px"><button class="modal-btn" id="pluginModalClose" type="button">닫기</button></div>
     </div>
@@ -2265,7 +2284,12 @@ int main() {
 
       document.getElementById("pluginBtn").addEventListener("click", () => {
         document.getElementById("pluginModal").classList.add("show");
+        refreshGitHubActions();
       });
+      document.getElementById("ghActionType").addEventListener("change", updateGitHubActionFields);
+      document.getElementById("ghRefreshBtn").addEventListener("click", () => refreshGitHubActions());
+      document.getElementById("ghRequestBtn").addEventListener("click", createGitHubActionRequest);
+      updateGitHubActionFields();
       document.getElementById("pluginModalClose").addEventListener("click", () => {
         document.getElementById("pluginModal").classList.remove("show");
       });
