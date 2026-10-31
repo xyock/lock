@@ -12,8 +12,6 @@
 <link rel="manifest" href="/lock/favicon-3/site.webmanifest?v=5" />
 <meta name="theme-color" content="#0a0a0a" />
 
-  <!-- Pyodide: 브라우저에서 Python 코드 실행 -->
-  <script defer src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -743,44 +741,83 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
       window.scrollTo(0, 0);
     }
 
-    // ===== Python 실행 =====
-    function loadPython() {
-      if (pyPromise) return pyPromise;
-      const status = document.getElementById("pyStatus");
-      const runButton = document.getElementById("runBtn");
-      status.textContent = "Python 엔진 준비 중... (처음에는 시간이 조금 걸립니다)";
-      pyPromise = Promise.resolve().then(() => {
-        if (typeof window.loadPyodide !== "function") throw new Error("Pyodide script did not load");
-        return window.loadPyodide();
-      }).then((py) => {
-        status.textContent = "Python 준비 완료";
-        runButton.disabled = false;
-        return py;
-      }).catch((error) => {
-        status.textContent = "Python 엔진을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.";
-        pyPromise = null;
-        throw error;
-      });
-      return pyPromise;
+    // ===== 다중 언어 실행 =====
+    const PISTON_LANGUAGE = {
+      python:"python", javascript:"javascript", typescript:"typescript", c:"c", cpp:"c++",
+      java:"java", csharp:"csharp", go:"go", rust:"rust", php:"php", ruby:"ruby",
+      swift:"swift", kotlin:"kotlin", dart:"dart", r:"rscript", sql:"sqlite3",
+      bash:"bash", powershell:"powershell", lua:"lua", perl:"perl", scala:"scala",
+      haskell:"haskell", assembly:"nasm"
+    };
+    function previewCode(kind, code) {
+      const output = document.getElementById("output");
+      const frame = document.createElement("iframe");
+      frame.setAttribute("sandbox", "allow-scripts");
+      frame.style.cssText = "width:100%;height:320px;border:1px solid #444;border-radius:8px;background:white";
+      const old = output.querySelector("iframe");
+      if (old) old.remove();
+      output.textContent = "";
+      output.appendChild(frame);
+      const src = kind === "css"
+        ? '<!doctype html><html><head><meta charset="utf-8"><style>' + code.replace(/<\\/style/gi, "<\\/style") + '</style></head><body><h1>xyock preview</h1><p>CSS 미리보기</p><button>Button</button></body></html>'
+        : code;
+      frame.srcdoc = src;
     }
-    async function runPython() {
+    async function runCode() {
       const code = document.getElementById("codeArea").value;
       const output = document.getElementById("output");
       const runButton = document.getElementById("runBtn");
-      output.textContent = "";
+      output.replaceChildren();
       output.classList.remove("error");
       if (!code.trim()) { output.textContent = "코드를 입력해 주세요."; return; }
+      const id = selectedLanguage;
+      if (id === "html" || id === "css") { previewCode(id, code); return; }
+      if (id === "json") {
+        try { JSON.parse(code); output.textContent = "✓ 올바른 JSON입니다."; }
+        catch (e) { output.classList.add("error"); output.textContent = e.message; }
+        return;
+      }
+      if (id === "xml") {
+        const doc = new DOMParser().parseFromString(code, "application/xml");
+        const err = doc.querySelector("parsererror");
+        if (err) { output.classList.add("error"); output.textContent = err.textContent; }
+        else output.textContent = "✓ 올바른 XML입니다.";
+        return;
+      }
+      if (id === "markdown" || id === "yaml" || id === "plaintext") {
+        output.textContent = id === "markdown"
+          ? "Markdown은 문서 형식입니다. 미리보기 기능은 다음 업데이트에서 제공됩니다."
+          : id === "yaml" ? "YAML은 데이터 형식이며 이 실행 엔진의 실행 대상 언어가 아닙니다."
+          : "일반 텍스트 파일은 실행 대상이 아닙니다.";
+        return;
+      }
+      const language = PISTON_LANGUAGE[id];
+      if (!language) { output.textContent = "이 언어의 실행 연결을 찾을 수 없습니다."; return; }
       runButton.disabled = true;
+      runButton.textContent = "실행 중…";
+      document.getElementById("pyStatus").textContent = "격리된 실행 환경에서 실행 중…";
       try {
-        const py = await loadPython();
-        py.setStdout({ batched: value => { output.textContent += value + "\\n"; } });
-        py.setStderr({ batched: value => { output.textContent += value + "\\n"; } });
-        await py.runPythonAsync(code);
-        if (!output.textContent) output.textContent = "(출력 없음)";
+        const response = await fetch("/api/run", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({language, code})
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "실행 서버 오류");
+        const parts = [];
+        if (result.compile?.output) parts.push(result.compile.output);
+        if (result.run?.output) parts.push(result.run.output);
+        if (!parts.length) parts.push("(출력 없음)");
+        output.textContent = parts.join("\\n");
+        if (result.run?.code !== 0 || result.run?.signal) output.classList.add("error");
+        document.getElementById("pyStatus").textContent = language + " 실행 완료";
       } catch (error) {
         output.classList.add("error");
-        output.textContent = error?.message || String(error);
-      } finally { runButton.disabled = false; }
+        output.textContent = error.message || String(error);
+        document.getElementById("pyStatus").textContent = "실행 실패";
+      } finally {
+        runButton.disabled = false;
+        runButton.textContent = "▶ 실행";
+      }
     }
     function renderLanguageTiles() {
       const grid = document.getElementById("languageGrid");
@@ -802,13 +839,13 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
       renderLanguageTiles();
       document.getElementById("editorTitle").textContent = "코드 편집기 · " + lang[2];
       document.getElementById("codeArea").placeholder = lang[2] + " 코드를 작성하세요";
-      const runnable = id === "python";
+      const runnable = Boolean(PISTON_LANGUAGE[id]) || ["html","css","json","xml","markdown","yaml","plaintext"].includes(id);
       document.getElementById("runBtn").disabled = !runnable;
-      document.getElementById("runBtn").textContent = runnable ? "▶ 실행" : "실행 환경 필요";
-      document.getElementById("outputLabel").textContent = runnable ? "실행 결과" : "실행 안내";
-      document.getElementById("editorHint").textContent = runnable
-        ? "Python은 Pyodide를 통해 브라우저에서 실행됩니다."
-        : "코드 작성·복사·다운로드를 지원합니다. 실행에는 해당 언어의 컴파일러 또는 런타임 연결이 필요합니다.";
+      document.getElementById("runBtn").textContent = "▶ 실행";
+      document.getElementById("outputLabel").textContent = (id === "html" || id === "css") ? "미리보기" : "실행 결과";
+      document.getElementById("editorHint").textContent = PISTON_LANGUAGE[id]
+        ? "실행 버튼을 누르면 로컬 격리 실행 엔진에서 실행됩니다."
+        : "HTML/CSS는 미리보기, JSON/XML은 유효성 검사를 지원합니다.";
       document.getElementById("pyStatus").textContent = lang[2] + " 선택됨 · ." + lang[3];
       if (!document.getElementById("codeArea").value.trim()) document.getElementById("codeArea").value = STARTERS[id] || "";
       document.getElementById("output").textContent = "";
@@ -868,7 +905,7 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
         const tile = event.target.closest("[data-language]");
         if (tile) selectLanguage(tile.dataset.language);
       });
-      document.getElementById("runBtn").addEventListener("click", runPython);
+      document.getElementById("runBtn").addEventListener("click", runCode);
       document.getElementById("downloadBtn").addEventListener("click", downloadCode);
       document.getElementById("copyBtn").addEventListener("click", async () => {
         try {
@@ -884,7 +921,7 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
       document.getElementById("codeArea").addEventListener("keydown", (event) => {
         if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
           event.preventDefault();
-          runPython();
+          runCode();
           return;
         }
         onCodeKeydown(event);
