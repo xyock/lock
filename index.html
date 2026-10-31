@@ -236,6 +236,16 @@
       outline: none;
     }
     .code-area:focus { border-color: #555; }
+    .language-title { margin:8px 0 10px;color:var(--muted);font-size:.88em; }
+    .language-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px;margin-bottom:16px; }
+    .language-tile { min-height:58px;padding:10px 12px;display:flex;align-items:center;gap:9px;text-align:left;border:1px solid #333;border-radius:9px;background:#101010;color:var(--text);cursor:pointer;font:inherit; }
+    .language-tile:hover { border-color:#666; }
+    .language-tile.active { border-color:var(--accent);background:#142019; }
+    .language-icon { width:28px;height:28px;flex:0 0 28px;display:grid;place-items:center;border-radius:7px;background:#242424;color:var(--accent);font-size:.76em;font-weight:700; }
+    .language-name { font-size:.88em; }
+    .editor-toolbar { display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 0; }
+    .editor-hint { color:var(--muted);font-size:.82em;line-height:1.5; }
+
     .output-label { margin: 18px 0 8px; font-size: 0.85em; color: var(--muted); }
     .output {
       min-height: 120px;
@@ -354,7 +364,7 @@
       <button class="menu-btn" id="menuBtn" type="button" aria-label="메뉴" aria-expanded="false">☰</button>
       <div class="menu-dropdown" id="menuDropdown">
         <a class="menu-item" href="xyock.html">xyock<span class="sub">용어 사전 열기</span></a>
-        <button class="menu-item" id="menuPython" type="button">Python 편집기<span class="sub">브라우저에서 코드 실행</span></button>
+        <button class="menu-item" id="menuPython" type="button">다중 언어 코드 편집기<span class="sub">여러 프로그래밍 언어 작성</span></button>
         <button class="menu-item" id="menuLogin" type="button">로그인<span class="sub" id="menuLoginSub">이메일 또는 GitHub</span></button>
       </div>
     </div>
@@ -407,16 +417,21 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
     <section class="view pad" id="viewPython">
       <div class="editor-head">
         <div>
-          <h2><a class="home-link" href="#home" aria-label="홈으로"><img class="logo-mark" src="logo.png" alt="" /></a>Python 편집기</h2>
-          <div class="editor-status" id="pyStatus">Python 엔진 준비 중...</div>
+          <h2><a class="home-link" href="#home" aria-label="홈으로"><img class="logo-mark" src="logo.png" alt="" /></a><span id="editorTitle">코드 편집기 · Python</span></h2>
+          <div class="editor-status" id="pyStatus">언어를 선택하고 코드를 작성하세요.</div>
         </div>
         <div class="btn-group">
           <button class="btn" id="clearBtn" type="button">출력 지우기</button>
+          <button class="btn" id="copyBtn" type="button">코드 복사</button>
+          <button class="btn" id="downloadBtn" type="button">다운로드</button>
           <button class="btn primary" id="runBtn" type="button" disabled>▶ 실행</button>
         </div>
       </div>
-      <textarea class="code-area" id="codeArea" spellcheck="false" placeholder="# 여기에 Python 코드를 작성하세요" aria-label="Python 코드 입력"></textarea>
-      <div class="output-label">출력</div>
+      <div class="language-title">프로그래밍 언어 선택</div>
+      <div class="language-grid" id="languageGrid" aria-label="프로그래밍 언어 선택"></div>
+      <div class="editor-toolbar"><span class="editor-hint" id="editorHint">Python은 브라우저에서 실행할 수 있습니다.</span></div>
+      <textarea class="code-area" id="codeArea" spellcheck="false" placeholder="# 코드를 작성하세요" aria-label="코드 입력" autocapitalize="off" autocomplete="off"></textarea>
+      <div class="output-label" id="outputLabel">실행 결과</div>
       <pre class="output" id="output" aria-live="polite"></pre>
     </section>
   </main>
@@ -452,6 +467,38 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
     let session = loadSession();
     let pyPromise = null;
     let loginPending = false;
+
+    let selectedLanguage = "python";
+    const LANGUAGES = [
+      ["python","Py","Python","py"],["javascript","JS","JavaScript","js"],["typescript","TS","TypeScript","ts"],
+      ["html","H5","HTML","html"],["css","CSS","CSS","css"],["c","C","C","c"],["cpp","C++","C++","cpp"],
+      ["java","J","Java","java"],["csharp","C#","C#","cs"],["go","Go","Go","go"],["rust","Rs","Rust","rs"],
+      ["php","PHP","PHP","php"],["ruby","Rb","Ruby","rb"],["swift","Sw","Swift","swift"],["kotlin","Kt","Kotlin","kt"],
+      ["dart","D","Dart","dart"],["r","R","R","r"],["sql","SQL","SQL","sql"],["bash","$","Bash","sh"],
+      ["powershell","PS","PowerShell","ps1"],["lua","Lua","Lua","lua"],["perl","Pl","Perl","pl"],["scala","Sc","Scala","scala"],
+      ["haskell","Hs","Haskell","hs"],["assembly","ASM","Assembly","asm"],["json","{}","JSON","json"],
+      ["yaml","YML","YAML","yml"],["xml","XML","XML","xml"],["markdown","MD","Markdown","md"],["plaintext","TXT","Plain Text","txt"]
+    ];
+    const STARTERS = {
+      python:'print("Hello, world!")', javascript:'console.log("Hello, world!");',
+      typescript:'const message: string = "Hello, world!";\nconsole.log(message);',
+      html:'<!doctype html>\n<html lang="ko">\n<head><meta charset="utf-8"><title>My page</title></head>\n<body><h1>Hello, world!</h1></body>\n</html>',
+      css:'body {\n  font-family: sans-serif;\n  background: #f5f5f5;\n}',
+      c:'#include <stdio.h>\n\nint main(void) {\n    printf("Hello, world!\\n");\n    return 0;\n}',
+      cpp:'#include <iostream>\n\nint main() {\n    std::cout << "Hello, world!" << std::endl;\n    return 0;\n}',
+      java:'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, world!");\n    }\n}',
+      csharp:'using System;\nclass Program { static void Main() { Console.WriteLine("Hello, world!"); } }',
+      go:'package main\nimport "fmt"\nfunc main() { fmt.Println("Hello, world!") }',
+      rust:'fn main() { println!("Hello, world!"); }', php:'<?php echo "Hello, world!"; ?>',
+      ruby:'puts "Hello, world!"', swift:'print("Hello, world!")', kotlin:'fun main() { println("Hello, world!") }',
+      dart:'void main() { print("Hello, world!"); }', r:'print("Hello, world!")', sql:"SELECT 'Hello, world!' AS message;",
+      bash:'#!/usr/bin/env bash\necho "Hello, world!"', powershell:'Write-Output "Hello, world!"',
+      lua:'print("Hello, world!")', perl:'print "Hello, world!\\n";',
+      scala:'object Main extends App { println("Hello, world!") }', haskell:'main = putStrLn "Hello, world!"',
+      assembly:'; Assembly source code', json:'{\n  "message": "Hello, world!"\n}', yaml:'message: Hello, world!',
+      xml:'<?xml version="1.0"?>\n<message>Hello, world!</message>', markdown:'# Hello, world!\n\nWrite Markdown here.', plaintext:''
+    };
+
 
     // ===== 유틸 =====
     function showToast(message) {
@@ -687,7 +734,7 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
       document.getElementById("viewPython").classList.toggle("show", showPython);
       toggleMenu(false);
       if (showPython) {
-        loadPython().catch(() => {});
+        if (selectedLanguage === "python") loadPython().catch(() => {});
         document.getElementById("codeArea").focus();
         history.replaceState(null, "", `${location.pathname}${location.search}#python`);
       } else {
@@ -722,24 +769,57 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
       const runButton = document.getElementById("runBtn");
       output.textContent = "";
       output.classList.remove("error");
-      if (!code.trim()) {
-        output.textContent = "코드를 입력해 주세요.";
-        return;
-      }
+      if (!code.trim()) { output.textContent = "코드를 입력해 주세요."; return; }
       runButton.disabled = true;
       try {
         const py = await loadPython();
-        py.setStdout({ batched: (value) => { output.textContent += value + "\n"; } });
-        py.setStderr({ batched: (value) => { output.textContent += value + "\n"; } });
+        py.setStdout({ batched: value => { output.textContent += value + "\\n"; } });
+        py.setStderr({ batched: value => { output.textContent += value + "\\n"; } });
         await py.runPythonAsync(code);
         if (!output.textContent) output.textContent = "(출력 없음)";
       } catch (error) {
         output.classList.add("error");
-        const message = error?.message || String(error);
-        output.textContent += message;
-      } finally {
-        runButton.disabled = false;
-      }
+        output.textContent = error?.message || String(error);
+      } finally { runButton.disabled = false; }
+    }
+    function renderLanguageTiles() {
+      const grid = document.getElementById("languageGrid");
+      grid.replaceChildren();
+      LANGUAGES.forEach(([id, mark, name]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "language-tile" + (id === selectedLanguage ? " active" : "");
+        button.dataset.language = id;
+        const icon = document.createElement("span"); icon.className = "language-icon"; icon.textContent = mark;
+        const label = document.createElement("span"); label.className = "language-name"; label.textContent = name;
+        button.append(icon, label); grid.append(button);
+      });
+    }
+    function selectLanguage(id) {
+      const lang = LANGUAGES.find(item => item[0] === id);
+      if (!lang) return;
+      selectedLanguage = id;
+      renderLanguageTiles();
+      document.getElementById("editorTitle").textContent = "코드 편집기 · " + lang[2];
+      document.getElementById("codeArea").placeholder = lang[2] + " 코드를 작성하세요";
+      const runnable = id === "python";
+      document.getElementById("runBtn").disabled = !runnable;
+      document.getElementById("runBtn").textContent = runnable ? "▶ 실행" : "실행 환경 필요";
+      document.getElementById("outputLabel").textContent = runnable ? "실행 결과" : "실행 안내";
+      document.getElementById("editorHint").textContent = runnable
+        ? "Python은 Pyodide를 통해 브라우저에서 실행됩니다."
+        : "코드 작성·복사·다운로드를 지원합니다. 실행에는 해당 언어의 컴파일러 또는 런타임 연결이 필요합니다.";
+      document.getElementById("pyStatus").textContent = lang[2] + " 선택됨 · ." + lang[3];
+      if (!document.getElementById("codeArea").value.trim()) document.getElementById("codeArea").value = STARTERS[id] || "";
+      document.getElementById("output").textContent = "";
+    }
+    function downloadCode() {
+      const lang = LANGUAGES.find(item => item[0] === selectedLanguage);
+      const blob = new Blob([document.getElementById("codeArea").value], {type:"text/plain;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url; link.download = "main." + lang[3]; link.click();
+      URL.revokeObjectURL(url);
     }
     function onCodeKeydown(event) {
       if (event.key !== "Tab") return;
@@ -782,7 +862,7 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
         });
       });
 
-      document.getElementById("runBtn").addEventListener("click", runPython);
+      renderLanguageTiles();\n      selectLanguage("python");\n      document.getElementById("languageGrid").addEventListener("click", event => { const tile = event.target.closest("[data-language]"); if (tile) selectLanguage(tile.dataset.language); });\n      document.getElementById("runBtn").addEventListener("click", runPython);\n      document.getElementById("downloadBtn").addEventListener("click", downloadCode);\n      document.getElementById("copyBtn").addEventListener("click", async () => { try { await navigator.clipboard.writeText(document.getElementById("codeArea").value); showToast("코드를 복사했습니다."); } catch { showToast("클립보드 권한을 확인해 주세요."); } });
       document.getElementById("clearBtn").addEventListener("click", () => {
         const output = document.getElementById("output");
         output.textContent = "";
