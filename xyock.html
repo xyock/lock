@@ -1390,7 +1390,19 @@ int main() {
       const pending = appendMessage("ai", "xyock is responding…");
 
       try {
-        let aiQuestion = question;
+        // 이전 대화의 최근 흐름을 함께 전달해 "그거", "아까 말한 것" 같은 후속 질문을 이해합니다.
+        const recentHistory = currentMessages()
+          .filter(message => message.content !== "xyock is responding…")
+          .slice(-14)
+          .slice(0, -1);
+        const historyText = recentHistory.map(message =>
+          (message.role === "user" ? "사용자" : "XYOCK") + ": " + message.content.slice(0, 650)
+        ).join("\n");
+        const contextInstruction = historyText
+          ? "[이전 대화 문맥]\n" + historyText +
+            "\n[문맥 사용 지침]\n현재 질문은 위 대화의 연속일 수 있다. '그거', '아까 것', '그렇게', '수정해' 같은 표현은 앞선 대화에서 지칭 대상을 찾아 해석하라. 이미 제공된 정보나 합의된 사항을 다시 묻지 말고, 현재 질문과 이전 대화를 함께 고려해 자연스럽게 답하라. 이전 대화에 없는 사실은 지어내지 마라.\n\n"
+          : "";
+        let aiQuestion = (contextInstruction + "[현재 질문]\n" + question).slice(0, 3900);
         let repoAttachments = [];
         const wantsRepoContext = /github|저장소|레포|repo|파일 목록|코드|코딩|앱을 만들|웹사이트|프로젝트|수정해|구현해/i.test(question);
 
