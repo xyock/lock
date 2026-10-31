@@ -130,7 +130,7 @@
     .model-options { display:grid;gap:10px; }
     .model-option { display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;text-align:left;border:1px solid #333;border-radius:9px;background:#101010;color:var(--text);cursor:pointer;font:inherit; }
     .model-option:hover,.model-option.selected { border-color:#35c9b8;background:#171d1c; }
-    .model-mark { width:34px;height:34px;flex:0 0 34px;border-radius:10px;display:grid;place-items:center;font-size:.78em;font-weight:700;color:#07100f;background:linear-gradient(135deg,#35c9b8,#e66ba8); }
+    .model-mark { width:34px;height:34px;flex:0 0 34px;border-radius:10px;display:grid;place-items:center;background:#202522;overflow:hidden; }\n    .model-mark svg { width:23px;height:23px;display:block; }
     .model-copy { flex:1;min-width:0; }
     .model-name { display:block;font-weight:600;margin-bottom:3px; }
     .model-desc { display:block;color:var(--muted);font-size:.82em;line-height:1.4; }
@@ -353,7 +353,7 @@
     .plugin-intro { color: var(--muted); text-align: center; font-size: .9em; line-height: 1.5; margin: -12px 0 20px; }
     .plugin-list { display: grid; gap: 10px; }
     .plugin-card { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid #303030; border-radius: 12px; background: #101010; }
-    .plugin-symbol { width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center; border-radius: 10px; background: #1d1d1d; color: #eee; font-size: 1.15em; font-weight: 700; }
+    .plugin-symbol { width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:10px;background:#1d1d1d;overflow:hidden; }\n    .plugin-symbol svg { width:25px;height:25px;display:block; }
     .plugin-info { flex: 1; min-width: 0; }
     .plugin-name { color: #f1f1f1; font-weight: 600; }
     .plugin-desc { color: #888; font-size: .8em; line-height: 1.45; margin-top: 4px; }
@@ -625,7 +625,7 @@
       <p class="plugin-intro">계정 로그인, 외부 서비스 연결 상태와 계정 관리 전용입니다. 저장소 작업은 채팅에서 요청합니다.</p>
       <div class="plugin-list">
         <div class="plugin-card">
-          <div class="plugin-symbol">GH</div>
+          <div class="plugin-symbol" aria-label="GitHub"><svg viewBox="0 0 24 24" role="img"><path fill="#f4f4f4" d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.56.1.76-.24.76-.54v-2.08c-3.1.67-3.76-1.32-3.76-1.32-.5-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.68.08-.68 1.12.08 1.71 1.15 1.71 1.15 1 .1.77 2.2 3.32 1.57.1-.73.4-1.23.72-1.51-2.48-.28-5.09-1.24-5.09-5.53 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.42.11-2.96 0 0 .94-.3 3.05 1.14a10.6 10.6 0 0 1 5.55 0c2.11-1.44 3.05-1.14 3.05-1.14.61 1.54.23 2.68.11 2.96.72.78 1.15 1.78 1.15 3 0 4.3-2.61 5.25-5.1 5.52.4.35.76 1.03.76 2.08v3.08c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z"/></svg></div>
           <div class="plugin-info">
             <div class="plugin-name">GitHub</div>
             <div class="plugin-desc">GitHub App이 연결된 xyock/lock 저장소의 작업을 요청하고, 직접 승인한 작업만 실행합니다.</div>
@@ -634,7 +634,7 @@
           <button class="plugin-action" id="githubPluginConnect" type="button">계정 연결</button>
         </div>
         <div class="plugin-card">
-          <div class="plugin-symbol">SB</div>
+          <div class="plugin-symbol" aria-label="Supabase"><svg viewBox="0 0 24 24" role="img"><path fill="#3ecf8e" d="M13.4 2.3a1 1 0 0 0-1.8-.5L2.7 13.2a1.1 1.1 0 0 0 .9 1.8h7l-.8 6.7a1 1 0 0 0 1.8.6l9.7-12.4a1.1 1.1 0 0 0-.9-1.8h-7.7l.7-5.8Z"/></svg></div>
           <div class="plugin-info">
             <div class="plugin-name">Supabase</div>
             <div class="plugin-desc">현재 xyock의 인증·데이터·AI 서버 연결을 사용합니다.</div>
@@ -699,11 +699,11 @@
       <div class="modal-title" id="modelModalTitle">Choose a model</div>
       <p style="color:var(--muted);text-align:center;line-height:1.5;margin:-12px 0 22px;font-size:.9em">무료 모델 5개 중 하나를 선택하세요.</p>
       <div class="model-options" id="modelOptions">
-        <button class="model-option" type="button" data-model="poolside/laguna-s-2.1:free"><span class="model-mark">L</span><span class="model-copy"><span class="model-name">Laguna S 2.1</span><span class="model-desc">코딩과 개발 작업에 적합</span></span><span class="model-check"></span></button>
-        <button class="model-option" type="button" data-model="nvidia/nemotron-3.5-super-vl:free"><span class="model-mark">N</span><span class="model-copy"><span class="model-name">Nemotron 3.5 Super VL</span><span class="model-desc">일반 질문과 멀티모달 작업</span></span><span class="model-check"></span></button>
+        <button class="model-option" type="button" data-model="poolside/laguna-s-2.1:free"><span class="model-mark" aria-label="Poolside"><svg viewBox="0 0 32 32" role="img"><path fill="#f2a65a" d="M7 5h8c7 0 11 4 11 10S22 25 15 25h-3v3H7V5Zm5 5v10h3c4 0 6-2 6-5s-2-5-6-5h-3Z"/></svg></span><span class="model-copy"><span class="model-name">Laguna S 2.1</span><span class="model-desc">코딩과 개발 작업에 적합</span></span><span class="model-check"></span></button>
+        <button class="model-option" type="button" data-model="nvidia/nemotron-3.5-super-vl:free"><span class="model-mark" aria-label="NVIDIA"><svg viewBox="0 0 32 32" role="img"><path fill="#76b900" d="M3 16c7-9 17-11 26-2-7-5-14-4-20 3 5-4 10-4 14 0-5-1-8 1-10 4 6-2 10-1 13 2-8-1-15 1-23-7Zm15-3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg></span><span class="model-copy"><span class="model-name">Nemotron 3.5 Super VL</span><span class="model-desc">일반 질문과 멀티모달 작업</span></span><span class="model-check"></span></button>
         <button class="model-option" type="button" data-model="nvidia/nemotron-3-ultra-550b-a55b:free"><span class="model-mark">N</span><span class="model-copy"><span class="model-name">Nemotron 3 Ultra</span><span class="model-desc">추론과 복잡한 질문</span></span><span class="model-check"></span></button>
-        <button class="model-option" type="button" data-model="dots-studio/dots-3-note-preview:free"><span class="model-mark">D</span><span class="model-copy"><span class="model-name">Dots3-Note Preview</span><span class="model-desc">일반 대화와 문서 작업</span></span><span class="model-check"></span></button>
-        <button class="model-option" type="button" data-model="kilo-auto/free"><span class="model-mark">✦</span><span class="model-copy"><span class="model-name">Kilo Auto Free</span><span class="model-desc">사용 가능한 무료 모델을 자동 선택</span></span><span class="model-check"></span></button>
+        <button class="model-option" type="button" data-model="dots-studio/dots-3-note-preview:free"><span class="model-mark" aria-label="Dots"><svg viewBox="0 0 32 32" role="img"><g fill="#f0f0f0"><circle cx="9" cy="9" r="3"/><circle cx="22" cy="9" r="3"/><circle cx="9" cy="22" r="3"/><circle cx="22" cy="22" r="3"/></g><circle cx="15.5" cy="15.5" r="3" fill="#7ae5b3"/></svg></span><span class="model-copy"><span class="model-name">Dots3-Note Preview</span><span class="model-desc">일반 대화와 문서 작업</span></span><span class="model-check"></span></button>
+        <button class="model-option" type="button" data-model="kilo-auto/free"><span class="model-mark" aria-label="Kilo"><svg viewBox="0 0 32 32" role="img"><path fill="#f3f3f3" d="M7 5h5v10l9-10h6L17 16l10 11h-6l-9-10v10H7V5Z"/></svg></span><span class="model-copy"><span class="model-name">Kilo Auto Free</span><span class="model-desc">사용 가능한 무료 모델을 자동 선택</span></span><span class="model-check"></span></button>
       </div>
       <div class="modal-buttons" style="margin-top:20px"><button class="modal-btn" id="modelModalClose" type="button">닫기</button></div>
     </div>
