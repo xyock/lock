@@ -1,0 +1,10 @@
+services:
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    container_name: xyock-piston
+    privileged: true
+    ports:
+      - "127.0.0.1:2000:2000"
+    volumes:
+      - ./piston-data:/piston
+    restart: unless-stopped
