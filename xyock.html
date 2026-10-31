@@ -480,6 +480,14 @@
     .modal-btn.primary:hover { background: rgba(45, 109, 79, 0.2); }
     .btn-github { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:12px; background:#f0f0f0; border:2px solid #f0f0f0; border-radius:8px; color:#0a0a0a; font-weight:600; cursor:pointer; font-family:inherit; font-size:1em; box-sizing:border-box; }
     .btn-github:hover { background:#fff; border-color:#fff; }
+    .btn-social { display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:12px;border:1px solid #353535;border-radius:8px;background:#171717;color:#eee;font:600 1em inherit;cursor:pointer;box-sizing:border-box; }
+    .btn-social:hover { background:#222;border-color:#555; }
+    .btn-social svg { width:19px;height:19px;flex:0 0 19px; }
+    .btn-google { background:#fff;color:#222;border-color:#ddd; }
+    .btn-google:hover { background:#f4f4f4; }
+    .btn-naver { background:#03c75a;color:#fff;border-color:#03c75a; }
+    .btn-naver:hover { background:#02b350;border-color:#02b350; }
+    .social-login-stack { display:grid;gap:9px; }
     .login-divider { display:flex; align-items:center; gap:12px; color:#777; font-size:.85em; margin:16px 0; }
     .login-divider::before, .login-divider::after { content:""; flex:1; height:1px; background:#333; }
     .history-modal-list { display:grid;gap:8px;max-height:50vh;overflow:auto;margin:14px 0; }
@@ -672,8 +680,13 @@
       <input id="loginPassword" type="password" class="modal-input" placeholder="Password" autocomplete="current-password" maxlength="100" />
       <div class="modal-error" id="loginError"></div>
       <button class="modal-btn primary" id="loginSubmit" type="button" style="width:100%">이메일로 로그인</button>
-      <div class="login-divider">또는</div>
-      <button class="btn-github" id="githubLogin" type="button"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.82 1.23.82.72 1.21 1.87.86 2.33.66.07-.52.28-.86.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub로 로그인</button>
+      <div class="login-divider">또는 간편 로그인</div>
+      <div class="social-login-stack">
+        <button class="btn-social btn-google" id="googleLogin" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.9 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8z"/><path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6 29.5 4 24 4A20 20 0 0 0 5.8 15.1l6.8 5.3C14.2 15.6 18.7 12 24 12z"/></svg>Google로 로그인</button>
+        <button class="btn-social btn-naver" id="naverLogin" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 3h5.2l5.6 8V3H20v18h-5.2l-5.6-8v8H4z"/></svg>네이버로 로그인</button>
+        <button class="btn-github" id="githubLogin" type="button"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.82 1.23.82.72 1.21 1.87.86 2.33.66.07-.52.28-.86.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub로 로그인</button>
+      </div>
+      <p id="naverLoginNotice" style="margin-top:10px;color:#888;font-size:.78em;line-height:1.5;text-align:center">네이버 로그인은 Supabase의 기본 OAuth 공급자에 포함되지 않아 별도 Custom OAuth/OIDC 연동이 필요합니다.</p>
       <button class="modal-btn" id="loginCancel" type="button" style="width:100%;margin-top:12px">취소</button>
     </div>
   </div>
@@ -2294,7 +2307,14 @@ int main() {
         showToast("모델 변경: " + option.querySelector(".model-name").textContent);
       });
       document.getElementById("loginSubmit").addEventListener("click", submitLogin);
-      document.getElementById("githubLogin").addEventListener("click", () => { location.href = AUTH_URL + "/authorize?provider=github&redirect_to=" + encodeURIComponent(location.origin + location.pathname); });
+      const oauthRedirect = encodeURIComponent(location.origin + location.pathname);
+      document.getElementById("googleLogin").addEventListener("click", () => {
+        location.href = AUTH_URL + "/authorize?provider=google&redirect_to=" + oauthRedirect;
+      });
+      document.getElementById("naverLogin").addEventListener("click", () => {
+        document.getElementById("naverLoginNotice").textContent = "네이버 로그인을 사용하려면 Supabase 프로젝트에 Naver Custom OAuth/OIDC 공급자와 네이버 앱 Client ID/Secret을 먼저 연결해야 합니다. 현재는 아직 인증 서버 연결 전입니다.";
+      });
+      document.getElementById("githubLogin").addEventListener("click", () => { location.href = AUTH_URL + "/authorize?provider=github&redirect_to=" + oauthRedirect; });
       document.getElementById("loginCancel").addEventListener("click", closeLoginModal);
 
       document.getElementById("loginPassword").addEventListener("keydown", e => {
