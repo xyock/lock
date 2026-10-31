@@ -182,6 +182,15 @@
 
     .bubble-actions { margin-top: 8px; display: flex; gap: 14px; }
 
+    .bubble.ai { max-width: min(900px, 92%); width: 100%; }
+    .code-card { margin: 12px 0; overflow: hidden; border: 1px solid #343434; border-radius: 10px; background: #101010; }
+    .code-card-header { min-height: 40px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 11px 7px 14px; border-bottom: 1px solid #303030; background: #191919; color: #bdbdbd; font-size: .78em; }
+    .code-card-language { font-weight: 600; letter-spacing: .02em; text-transform: lowercase; }
+    .code-copy-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 1px solid #414141; border-radius: 6px; background: #222; color: #ddd; font: inherit; cursor: pointer; }
+    .code-copy-btn:hover { background: #303030; border-color: #666; }
+    .code-card pre { margin: 0; padding: 16px; overflow-x: auto; color: #e5e7eb; font:  .88em/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; tab-size: 2; }
+    .code-card code { font: inherit; }
+
     .teach-link {
       color: #a8d5ba;
       text-decoration: underline;
@@ -769,9 +778,71 @@
 
     function addAIMessage(text, type = "normal") {
       const bubble = appendMessage("ai", "", type);
-      typewriterText(bubble, text).then(() => {
+      renderAIContent(bubble, text).then(() => {
         if (!restoringConversation) queueSaveConversation();
       });
+    }
+
+    async function renderAIContent(container, value) {
+      const source = String(value ?? "");
+      const fence = /```([^\n`]*)\n([\s\S]*?)```/g;
+      let cursor = 0;
+      let match;
+      while ((match = fence.exec(source))) {
+        if (match.index > cursor) {
+          const paragraph = document.createElement("div");
+          paragraph.className = "ai-text";
+          container.appendChild(paragraph);
+          await typewriterText(paragraph, source.slice(cursor, match.index));
+        }
+
+        const language = (match[1] || "").trim() || "코드";
+        const code = match[2].replace(/\n$/, "");
+        const card = document.createElement("section");
+        card.className = "code-card";
+        const header = document.createElement("div");
+        header.className = "code-card-header";
+        const label = document.createElement("span");
+        label.className = "code-card-language";
+        label.textContent = language;
+        const copy = document.createElement("button");
+        copy.className = "code-copy-btn";
+        copy.type = "button";
+        copy.textContent = "복사";
+        copy.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(code);
+            copy.textContent = "복사됨";
+          } catch {
+            const field = document.createElement("textarea");
+            field.value = code;
+            field.style.position = "fixed";
+            field.style.opacity = "0";
+            document.body.appendChild(field);
+            field.select();
+            const copied = document.execCommand("copy");
+            field.remove();
+            copy.textContent = copied ? "복사됨" : "복사 실패";
+          }
+          setTimeout(() => { copy.textContent = "복사"; }, 1600);
+        });
+        header.append(label, copy);
+        const pre = document.createElement("pre");
+        const codeElement = document.createElement("code");
+        pre.appendChild(codeElement);
+        card.append(header, pre);
+        container.appendChild(card);
+        await typewriterText(codeElement, code);
+        cursor = fence.lastIndex;
+        scrollToBottom();
+      }
+
+      if (cursor < source.length) {
+        const paragraph = document.createElement("div");
+        paragraph.className = "ai-text";
+        container.appendChild(paragraph);
+        await typewriterText(paragraph, source.slice(cursor));
+      }
     }
 
     function loadSession() {
