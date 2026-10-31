@@ -167,6 +167,19 @@
     .message.user { justify-content: flex-end; }
     .message.ai { justify-content: flex-start; }
 
+    .secret-chat-btn {
+      border: 1px solid rgba(122,229,179,.45); background: rgba(122,229,179,.08);
+      color: var(--accent); border-radius: 8px; padding: 8px 12px; cursor: pointer;
+      font-size: .82em; white-space: nowrap;
+    }
+    .secret-chat-btn:hover { background: rgba(122,229,179,.16); }
+    .secret-password-display { display:none; padding:12px; margin:12px 0; border:1px dashed rgba(122,229,179,.5); border-radius:8px; text-align:center; }
+    .secret-password-display strong { display:block; font-size:1.25em; letter-spacing:2px; color:var(--accent); user-select:all; margin-top:6px; }
+    .secret-input { width:100%; box-sizing:border-box; margin:10px 0; padding:13px; border-radius:8px; border:1px solid var(--border); background:var(--panel); color:var(--text); font:inherit; }
+    .secret-mode-banner { display:none; padding:8px 14px; text-align:center; color:var(--accent); background:rgba(122,229,179,.07); border-bottom:1px solid rgba(122,229,179,.2); font-size:.85em; }
+    body.secret-mode .secret-mode-banner { display:block; }
+
+
     .message.ai.thinking .bubble::before {
       content: "";
       display: inline-block;
@@ -566,11 +579,14 @@
       <span class="mode-indicator" id="modeIndicator">xyock</span>
       <div class="auth-col">
         <button class="icon-btn" id="historyBtn" type="button" title="대화 기록" aria-label="대화 기록">☰</button>
+        <button class="secret-chat-btn" id="secretChatBtn" type="button">Secret Chat</button>
         <button class="model-picker-btn" id="modelPickerBtn" type="button" title="AI 모델 선택" aria-label="AI 모델 선택"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 9.2 21.2 12 14.8 14.8 12 21.2 9.2 14.8 2.8 12 9.2 9.2Z"/><path d="M19 2.5 19.9 4.6 22 5.5 19.9 6.4 19 8.5 18.1 6.4 16 5.5 18.1 4.6Z"/></svg></button>
         <button class="login-btn" id="loginBtn" type="button">locked</button>
       </div>
     </div>
   </header>
+
+  <div class="secret-mode-banner" id="secretModeBanner">🔒 Secret Chat · 이 대화는 일반 대화 기록에 저장되지 않습니다.</div>
 
   <div class="chat-container" id="chat">
     <div class="welcome" id="welcome">
@@ -651,6 +667,18 @@
       <div class="login-divider">또는</div>
       <button class="btn-github" id="githubLogin" type="button"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.82 1.23.82.72 1.21 1.87.86 2.33.66.07-.52.28-.86.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub로 로그인</button>
       <button class="modal-btn" id="loginCancel" type="button" style="width:100%;margin-top:12px">취소</button>
+    </div>
+  </div>
+
+  <div class="modal" id="secretChatModal" role="dialog" aria-modal="true" aria-labelledby="secretChatModalTitle">
+    <div class="modal-content">
+      <div class="modal-title" id="secretChatModalTitle">Secret Chat 만들기</div>
+      <p style="color:var(--muted);text-align:center;font-size:.9em;line-height:1.5">비밀번호를 생성한 뒤 입력해야 비밀 대화를 시작할 수 있습니다.</p>
+      <button class="modal-btn" id="secretCreateBtn" type="button" style="width:100%">비밀번호 만들기</button>
+      <div class="secret-password-display" id="secretPasswordDisplay">입장 비밀번호<strong id="secretGeneratedPassword"></strong><button class="modal-btn" id="secretCopyPasswordBtn" type="button" style="margin-top:10px">비밀번호 복사</button></div>
+      <input class="secret-input" id="secretPasswordInput" type="password" autocomplete="off" placeholder="생성한 비밀번호 입력" aria-label="Secret Chat 비밀번호">
+      <div class="modal-buttons"><button class="modal-btn" id="secretEnterBtn" type="button">입장하기</button><button class="modal-btn" id="secretCancelBtn" type="button">취소</button></div>
+      <p id="secretChatNotice" role="status" style="color:var(--muted);font-size:.82em;text-align:center;min-height:1.2em"></p>
     </div>
   </div>
 
@@ -1663,7 +1691,7 @@ int main() {
     }
 
     function queueSaveConversation() {
-      if (restoringConversation || !session?.user_id) return;
+      if (isSecretChat || restoringConversation || !session?.user_id) return;
       const messages = currentMessages();
       if (!messages.length) return;
       saveQueue = saveQueue.then(() => persistConversation(messages)).catch(err => {
@@ -1769,6 +1797,54 @@ int main() {
       }
     }
 
+    function openSecretChatSetup() {
+      if (isSecretChat) {
+        isSecretChat = false;
+        document.body.classList.remove("secret-mode");
+        document.getElementById("secretChatBtn").textContent = "Secret Chat";
+        document.getElementById("modeIndicator").textContent = "xyock";
+        currentConversationId = null;
+        startNewConversation();
+        showToast("일반 채팅으로 돌아왔습니다.");
+        return;
+      }
+      secretChatPassword = "";
+      document.getElementById("secretPasswordDisplay").style.display = "none";
+      document.getElementById("secretGeneratedPassword").textContent = "";
+      document.getElementById("secretPasswordInput").value = "";
+      document.getElementById("secretChatNotice").textContent = "";
+      document.getElementById("secretChatModal").classList.add("show");
+    }
+
+    function createSecretChatPassword() {
+      const bytes = new Uint8Array(6);
+      crypto.getRandomValues(bytes);
+      secretChatPassword = Array.from(bytes, b => (b % 36).toString(36)).join("").toUpperCase();
+      document.getElementById("secretGeneratedPassword").textContent = secretChatPassword;
+      document.getElementById("secretPasswordDisplay").style.display = "block";
+      document.getElementById("secretChatNotice").textContent = "비밀번호를 복사하거나 기억한 뒤 입력해 주세요.";
+    }
+
+    function enterSecretChat() {
+      const entered = document.getElementById("secretPasswordInput").value.trim().toUpperCase();
+      if (!secretChatPassword) {
+        document.getElementById("secretChatNotice").textContent = "먼저 비밀번호 만들기를 눌러 주세요.";
+        return;
+      }
+      if (entered !== secretChatPassword) {
+        document.getElementById("secretChatNotice").textContent = "비밀번호가 올바르지 않습니다.";
+        return;
+      }
+      isSecretChat = true;
+      currentConversationId = null;
+      document.body.classList.add("secret-mode");
+      document.getElementById("secretChatBtn").textContent = "Secret 종료";
+      document.getElementById("modeIndicator").textContent = "Secret";
+      document.getElementById("secretChatModal").classList.remove("show");
+      startNewConversation();
+      showToast("Secret Chat에 입장했습니다.");
+    }
+
     function startNewConversation() {
       currentConversationId = null;
       const chat = document.getElementById("chat");
@@ -1780,6 +1856,9 @@ int main() {
       welcome.append(h, p); chat.append(welcome);
       document.getElementById("historyModal").classList.remove("show");
     }
+
+    let isSecretChat = false;
+    let secretChatPassword = "";
 
     let githubRepositoriesCache = [];
     let githubRepositoriesCacheValid = false;
@@ -2140,6 +2219,16 @@ int main() {
 
       document.getElementById("loginBtn").addEventListener("click", openLoginModal);
       document.getElementById("historyBtn").addEventListener("click", openHistoryModal);
+      document.getElementById("secretChatBtn").addEventListener("click", openSecretChatSetup);
+      document.getElementById("secretCreateBtn").addEventListener("click", createSecretChatPassword);
+      document.getElementById("secretEnterBtn").addEventListener("click", enterSecretChat);
+      document.getElementById("secretPasswordInput").addEventListener("keydown", e => { if (e.key === "Enter") enterSecretChat(); });
+      document.getElementById("secretCopyPasswordBtn").addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(secretChatPassword); showToast("비밀번호를 복사했습니다."); }
+        catch { document.getElementById("secretChatNotice").textContent = "복사할 수 없습니다. 비밀번호를 직접 선택해 복사해 주세요."; }
+      });
+      document.getElementById("secretCancelBtn").addEventListener("click", () => document.getElementById("secretChatModal").classList.remove("show"));
+      document.getElementById("secretChatModal").addEventListener("click", e => { if (e.target.id === "secretChatModal") e.currentTarget.classList.remove("show"); });
       document.getElementById("historyCloseBtn").addEventListener("click", () => document.getElementById("historyModal").classList.remove("show"));
       document.getElementById("newChatBtn").addEventListener("click", startNewConversation);
       document.getElementById("modelPickerBtn").addEventListener("click", openModelModal);
