@@ -1663,7 +1663,32 @@ int main() {
       document.getElementById("historyModal").classList.remove("show");
     }
 
-    async function loadGitHubRepositories() {
+    let githubRepositoriesCache = [];
+    let githubRepositoriesLoadedAt = 0;
+    let githubRepositoriesPromise = null;
+    const GITHUB_REPOSITORIES_CACHE_MS = 5 * 60 * 1000;
+
+    function renderGitHubRepositories(repositories) {
+      const select = document.getElementById("ghRepoSelect");
+      const notice = document.getElementById("ghActionNotice");
+      const previous = select.value;
+      select.replaceChildren();
+      if (!repositories.length) {
+        select.append(new Option("연결된 저장소가 없습니다.", ""));
+        select.disabled = true;
+        notice.textContent = "GitHub App 설정에서 사용할 저장소를 추가해 주세요.";
+        return;
+      }
+      repositories.forEach(repo => {
+        const option = new Option(repo.full_name + (repo.private ? " · Private" : " · Public"), repo.full_name);
+        option.dataset.defaultBranch = repo.default_branch || "main";
+        select.append(option);
+      });
+      select.value = repositories.some(r => r.full_name === previous) ? previous : repositories[0].full_name;
+      select.disabled = false;
+    }
+
+    async function loadGitHubRepositories(force = false) {
       const select = document.getElementById("ghRepoSelect");
       const notice = document.getElementById("ghActionNotice");
       if (!session || !await ensureSession()) {
@@ -1671,34 +1696,33 @@ int main() {
         select.disabled = true;
         return [];
       }
-      const previous = select.value;
+      const cacheFresh = githubRepositoriesCache.length &&
+        Date.now() - githubRepositoriesLoadedAt < GITHUB_REPOSITORIES_CACHE_MS;
+      if (!force && cacheFresh) {
+        renderGitHubRepositories(githubRepositoriesCache);
+        return githubRepositoriesCache;
+      }
+      if (githubRepositoriesPromise) return githubRepositoriesPromise;
       select.disabled = true;
       select.replaceChildren(new Option("저장소 불러오는 중…", ""));
-      try {
-        const data = await githubActionApi("repositories");
-        const repositories = Array.isArray(data.repositories) ? data.repositories : [];
-        select.replaceChildren();
-        if (!repositories.length) {
-          select.append(new Option("연결된 저장소가 없습니다.", ""));
+      githubRepositoriesPromise = (async () => {
+        try {
+          const data = await githubActionApi("repositories");
+          const repositories = Array.isArray(data.repositories) ? data.repositories : [];
+          githubRepositoriesCache = repositories;
+          githubRepositoriesLoadedAt = Date.now();
+          renderGitHubRepositories(repositories);
+          return repositories;
+        } catch (e) {
+          select.replaceChildren(new Option("저장소 목록을 불러오지 못했습니다.", ""));
           select.disabled = true;
-          notice.textContent = "GitHub App 설정에서 사용할 저장소를 추가해 주세요.";
-          return [];
+          notice.textContent = "저장소 목록 오류: " + e.message;
+          throw e;
+        } finally {
+          githubRepositoriesPromise = null;
         }
-        repositories.forEach(repo => {
-          const label = repo.full_name + (repo.private ? " · Private" : " · Public");
-          const option = new Option(label, repo.full_name);
-          option.dataset.defaultBranch = repo.default_branch || "main";
-          select.append(option);
-        });
-        select.value = repositories.some(r => r.full_name === previous) ? previous : repositories[0].full_name;
-        select.disabled = false;
-        return repositories;
-      } catch (e) {
-        select.replaceChildren(new Option("저장소 목록을 불러오지 못했습니다.", ""));
-        select.disabled = true;
-        notice.textContent = "저장소 목록 오류: " + e.message;
-        throw e;
-      }
+      })();
+      return githubRepositoriesPromise;
     }
 
     async function githubActionApi(op, extra = {}) {
@@ -1744,14 +1768,21 @@ int main() {
       }
       notice.textContent = "요청 내역을 불러오는 중…";
       try {
-        await loadGitHubRepositories();
-        const data = await githubActionApi("list");
-        if (!data.requests?.length) {
-          notice.textContent = "아직 요청한 작업이 없습니다.";
+        const [repoResult, data] = await Promise.allSettled([
+          loadGitHubRepositories(),
+          githubActionApi("list")
+        ]);
+        if (repoResult.status === "rejected") {
+          notice.textContent = "저장소 목록을 불러오지 못했습니다: " + repoResult.reason.message;
+        }
+        if (data.status === "rejected") throw data.reason;
+        const requests = data.value;
+        if (!requests.requests?.length) {
+          if (repoResult.status === "fulfilled") notice.textContent = "아직 요청한 작업이 없습니다.";
           return;
         }
         notice.textContent = "각 작업은 개별 승인 후 별도로 실행해야 합니다.";
-        data.requests.forEach(item => {
+        requests.requests.forEach(item => {
           const card = document.createElement("article");
           card.className = "github-action-item";
           const meta = document.createElement("div");
