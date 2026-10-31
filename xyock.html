@@ -573,7 +573,7 @@
   <div class="modal" id="pluginModal" role="dialog" aria-modal="true" aria-labelledby="pluginModalTitle">
     <div class="modal-content plugin-modal-content">
       <div class="modal-title" id="pluginModalTitle">Plugins</div>
-      <p class="plugin-intro">xyock에 외부 개발 도구를 연결합니다.</p>
+      <p class="plugin-intro">계정 로그인, 외부 서비스 연결 상태와 계정 관리 전용입니다. 저장소 작업은 채팅에서 요청합니다.</p>
       <div class="plugin-list">
         <div class="plugin-card">
           <div class="plugin-symbol">GH</div>
@@ -611,50 +611,7 @@
           <div id="sbAccountNotice" class="plugin-desc" role="status" aria-live="polite">Supabase 계정을 연결하면 여기에 조직과 프로젝트가 표시됩니다.</div>
         </div>
       </section>
-      <section class="github-action-panel" aria-labelledby="githubActionTitle">
-        <div class="github-action-title" id="githubActionTitle">GitHub 저장소 작업 승인</div>
-        <label class="github-action-form" style="margin-bottom:12px;color:#aaa;font-size:.8em">저장소 선택
-          <select id="ghRepoSelect" class="github-repo-select" disabled>
-            <option value="">저장소 목록 불러오는 중…</option>
-          </select>
-        </label>
-        <p class="plugin-desc" style="margin:0 0 12px">작업을 요청하면 먼저 내용이 등록됩니다. 승인과 실행은 각각 별도 버튼을 눌러야 하며, 승인하지 않은 작업은 GitHub에 반영되지 않습니다.</p>
-        <div class="github-action-form">
-          <label>작업 종류
-            <select id="ghActionType">
-              <option value="read_file">파일 읽기</option>
-              <option value="create_file">파일 생성</option>
-              <option value="update_file">파일 수정</option>
-              <option value="create_pull_request">Pull Request 생성</option>
-              <option value="deploy_pages">GitHub Pages 빌드 요청</option>
-            </select>
-          </label>
-          <label id="ghPathField">파일 경로
-            <input id="ghTargetPath" type="text" maxlength="240" placeholder="예: xyock.html" />
-          </label>
-          <label id="ghContentField">파일 내용
-            <textarea id="ghContent" maxlength="100000" placeholder="생성하거나 수정할 전체 파일 내용"></textarea>
-          </label>
-          <label id="ghMessageField">커밋 메시지
-            <input id="ghCommitMessage" type="text" maxlength="200" placeholder="Update file" />
-          </label>
-          <label id="ghPrTitleField" hidden>PR 제목
-            <input id="ghPrTitle" type="text" maxlength="200" placeholder="변경 사항 제목" />
-          </label>
-          <label id="ghPrHeadField" hidden>PR head 브랜치
-            <input id="ghPrHead" type="text" maxlength="100" placeholder="feature/my-change" />
-          </label>
-          <label id="ghPrBodyField" hidden>PR 설명
-            <textarea id="ghPrBody" maxlength="5000" placeholder="변경 사항 설명"></textarea>
-          </label>
-          <div class="github-action-row">
-            <button class="plugin-action" id="ghRequestBtn" type="button">작업 요청</button>
-            <button class="plugin-action" id="ghRefreshBtn" type="button">새로고침</button>
-          </div>
-          <div id="ghActionNotice" class="plugin-desc" role="status" aria-live="polite">로그인 후 사용할 수 있습니다.</div>
-        </div>
-        <div class="github-action-list" id="ghActionList"></div>
-      </section>
+      <div class="plugin-desc" style="margin-top:14px">GitHub 저장소 파일 읽기와 코드 수정은 채팅에서 요청할 수 있도록 연결됩니다. 실제 변경은 승인 후에만 반영됩니다.</div>
       <div class="modal-buttons" style="margin-top:20px"><button class="modal-btn" id="pluginModalClose" type="button">닫기</button></div>
     </div>
   </div>
@@ -1338,6 +1295,28 @@ int main() {
       appendMessage("ai", `[${key}]\n${allTerms[key]}`, "success");
     }
 
+    async function typewriterText(element, value) {
+      const text = String(value || "");
+      element.textContent = "";
+      // 첫 글자를 즉시 보여주고, 긴 코드도 작은 묶음으로 부드럽게 출력합니다.
+      if (!text) return;
+      element.textContent = text.slice(0, 1);
+      let index = 1;
+      const step = text.length > 12000 ? 48 : text.length > 4000 ? 24 : 8;
+      while (index < text.length) {
+        const next = Math.min(index + step, text.length);
+        element.textContent += text.slice(index, next);
+        index = next;
+        if (index % 240 < step) {
+          scrollToBottom();
+          await new Promise(resolve => setTimeout(resolve, 12));
+        } else {
+          await new Promise(resolve => setTimeout(resolve, 2));
+        }
+      }
+      scrollToBottom();
+    }
+
     async function askLocalxyock(question, attachments = []) {
       const pending = appendMessage("ai", "xyock is responding…");
 
@@ -1372,7 +1351,7 @@ int main() {
           throw new Error(details);
         }
 
-        pending.textContent = data.answer || "AI didn't respond.";
+        await typewriterText(pending, data.answer || "AI didn't respond.");
       } catch (error) {
         pending.textContent =
           `xyock에 연결하지 못했습니다. ${error.message || "Supabase Edge Function error."}`;
