@@ -23,8 +23,8 @@ async function sha256(value: string) {
 function config() {
   const url = Deno.env.get("SUPABASE_URL");
   const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const clientId = Deno.env.get("SUPABASE_OAUTH_CLIENT_ID");
-  const clientSecret = Deno.env.get("SUPABASE_OAUTH_CLIENT_SECRET");
+  const clientId = Deno.env.get("XYOCK_OAUTH_CLIENT_ID");
+  const clientSecret = Deno.env.get("XYOCK_OAUTH_CLIENT_SECRET");
   const encryptionKey = Deno.env.get("XYOCK_TOKEN_ENCRYPTION_KEY");
   const appUrl = Deno.env.get("XYOCK_APP_URL");
   if (!url || !service || !clientId || !clientSecret || !encryptionKey || !appUrl)
