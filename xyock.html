@@ -1114,7 +1114,7 @@ int main() {
         : "맞춤법 검사: 문제 없습니다.";
     }
 
-    async function sendMessage() {
+    async async function sendMessage() {
       const input = document.getElementById("searchInput");
       const query = sanitize(input.value).trim().slice(0, MAX_INPUT_LEN);
       const attachments = selectedAttachments.slice();
