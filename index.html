@@ -862,7 +862,20 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
         });
       });
 
-      renderLanguageTiles();\n      selectLanguage("python");\n      document.getElementById("languageGrid").addEventListener("click", event => { const tile = event.target.closest("[data-language]"); if (tile) selectLanguage(tile.dataset.language); });\n      document.getElementById("runBtn").addEventListener("click", runPython);\n      document.getElementById("downloadBtn").addEventListener("click", downloadCode);\n      document.getElementById("copyBtn").addEventListener("click", async () => { try { await navigator.clipboard.writeText(document.getElementById("codeArea").value); showToast("코드를 복사했습니다."); } catch { showToast("클립보드 권한을 확인해 주세요."); } });
+      renderLanguageTiles();
+      selectLanguage("python");
+      document.getElementById("languageGrid").addEventListener("click", event => {
+        const tile = event.target.closest("[data-language]");
+        if (tile) selectLanguage(tile.dataset.language);
+      });
+      document.getElementById("runBtn").addEventListener("click", runPython);
+      document.getElementById("downloadBtn").addEventListener("click", downloadCode);
+      document.getElementById("copyBtn").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(document.getElementById("codeArea").value);
+          showToast("코드를 복사했습니다.");
+        } catch { showToast("클립보드 권한을 확인해 주세요."); }
+      });
       document.getElementById("clearBtn").addEventListener("click", () => {
         const output = document.getElementById("output");
         output.textContent = "";
