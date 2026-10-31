@@ -758,7 +758,7 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
       output.textContent = "";
       output.appendChild(frame);
       const src = kind === "css"
-        ? '<!doctype html><html><head><meta charset="utf-8"><style>' + code.replace(/<\\/style/gi, "<\\/style") + '</style></head><body><h1>xyock preview</h1><p>CSS 미리보기</p><button>Button</button></body></html>'
+        ? '<!doctype html><html><head><meta charset="utf-8"><style>' + code.split("</style").join("<\/style") + '</style></head><body><h1>xyock preview</h1><p>CSS 미리보기</p><button>Button</button></body></html>'
         : code;
       frame.srcdoc = src;
     }
