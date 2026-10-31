@@ -316,6 +316,23 @@
     .plugin-action:hover { background: #252525; border-color: #555; }
     @media (prefers-reduced-motion: reduce) { .plugin-btn { animation: none; } }
 
+    .github-action-panel { margin-top:18px; padding-top:16px; border-top:1px solid #2b2b2b; }
+    .github-action-title { font-size:.95em; font-weight:600; margin-bottom:10px; color:#eee; }
+    .github-action-form { display:grid; gap:9px; }
+    .github-action-form label { display:grid; gap:5px; color:#aaa; font-size:.8em; }
+    .github-action-form input,.github-action-form textarea,.github-action-form select { width:100%; padding:10px 12px; border:1px solid #333; border-radius:8px; background:#101010; color:#eee; font:inherit; font-size:.88em; }
+    .github-action-form textarea { min-height:88px; }
+    .github-action-row { display:flex; gap:8px; flex-wrap:wrap; }
+    .github-action-row > * { flex:1; min-width:120px; }
+    .github-action-list { display:grid; gap:9px; margin-top:14px; max-height:32vh; overflow:auto; }
+    .github-action-item { padding:11px; border:1px solid #333; border-radius:9px; background:#101010; }
+    .github-action-meta { color:#9ac8ff; font-size:.78em; margin-bottom:5px; }
+    .github-action-detail { color:#bbb; font-size:.82em; white-space:pre-wrap; overflow-wrap:anywhere; max-height:110px; overflow:auto; }
+    .github-action-buttons { display:flex; gap:7px; margin-top:9px; flex-wrap:wrap; }
+    .github-action-buttons button { padding:7px 10px; border:1px solid #444; border-radius:7px; background:#1a1a1a; color:#eee; cursor:pointer; font:inherit; font-size:.8em; }
+    .github-action-buttons .approve { border-color:#2d6d4f; color:#a8d5ba; }
+    .github-action-buttons .reject { border-color:#754040; color:#ffaaaa; }
+    .github-action-result { margin-top:7px; color:#a8d5ba; font-size:.8em; white-space:pre-wrap; overflow-wrap:anywhere; }
     .attachment-list { display:flex; flex-wrap:wrap; gap:6px; max-width:820px; margin:0 auto 8px; }
     .attachment-chip { display:flex; align-items:center; gap:8px; max-width:100%; padding:6px 10px; border:1px solid #333; border-radius:12px; color:#ccc; background:#141414; font-size:.82em; }
     .attachment-chip span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -560,8 +577,8 @@
           <div class="plugin-symbol">GH</div>
           <div class="plugin-info">
             <div class="plugin-name">GitHub</div>
-            <div class="plugin-desc">GitHub 계정으로 로그인합니다. 저장소 읽기·쓰기 권한은 별도 OAuth 앱 설정이 필요합니다.</div>
-            <span class="plugin-status" id="githubPluginStatus">계정 연결 전</span>
+            <div class="plugin-desc">GitHub App이 연결된 xyock/lock 저장소의 작업을 요청하고, 직접 승인한 작업만 실행합니다.</div>
+            <span class="plugin-status" id="githubPluginStatus">GitHub App 서버 연결 설정됨</span>
           </div>
           <button class="plugin-action" id="githubPluginConnect" type="button">계정 연결</button>
         </div>
@@ -575,6 +592,45 @@
           <button class="plugin-action" id="supabasePluginOpen" type="button">대시보드</button>
         </div>
       </div>
+      <section class="github-action-panel" aria-labelledby="githubActionTitle">
+        <div class="github-action-title" id="githubActionTitle">xyock/lock 작업 승인</div>
+        <p class="plugin-desc" style="margin:0 0 12px">작업을 요청하면 먼저 내용이 등록됩니다. 승인과 실행은 각각 별도 버튼을 눌러야 하며, 승인하지 않은 작업은 GitHub에 반영되지 않습니다.</p>
+        <div class="github-action-form">
+          <label>작업 종류
+            <select id="ghActionType">
+              <option value="read_file">파일 읽기</option>
+              <option value="create_file">파일 생성</option>
+              <option value="update_file">파일 수정</option>
+              <option value="create_pull_request">Pull Request 생성</option>
+              <option value="deploy_pages">GitHub Pages 빌드 요청</option>
+            </select>
+          </label>
+          <label id="ghPathField">파일 경로
+            <input id="ghTargetPath" type="text" maxlength="240" placeholder="예: xyock.html" />
+          </label>
+          <label id="ghContentField">파일 내용
+            <textarea id="ghContent" maxlength="100000" placeholder="생성하거나 수정할 전체 파일 내용"></textarea>
+          </label>
+          <label id="ghMessageField">커밋 메시지
+            <input id="ghCommitMessage" type="text" maxlength="200" placeholder="Update file" />
+          </label>
+          <label id="ghPrTitleField" hidden>PR 제목
+            <input id="ghPrTitle" type="text" maxlength="200" placeholder="변경 사항 제목" />
+          </label>
+          <label id="ghPrHeadField" hidden>PR head 브랜치
+            <input id="ghPrHead" type="text" maxlength="100" placeholder="feature/my-change" />
+          </label>
+          <label id="ghPrBodyField" hidden>PR 설명
+            <textarea id="ghPrBody" maxlength="5000" placeholder="변경 사항 설명"></textarea>
+          </label>
+          <div class="github-action-row">
+            <button class="plugin-action" id="ghRequestBtn" type="button">작업 요청</button>
+            <button class="plugin-action" id="ghRefreshBtn" type="button">새로고침</button>
+          </div>
+          <div id="ghActionNotice" class="plugin-desc" role="status" aria-live="polite">로그인 후 사용할 수 있습니다.</div>
+        </div>
+        <div class="github-action-list" id="ghActionList"></div>
+      </section>
       <div class="modal-buttons" style="margin-top:20px"><button class="modal-btn" id="pluginModalClose" type="button">닫기</button></div>
     </div>
   </div>
@@ -1601,6 +1657,143 @@ int main() {
       document.getElementById("historyModal").classList.remove("show");
     }
 
+    async function githubActionApi(op, extra = {}) {
+      if (!session || !await ensureSession()) throw new Error("먼저 xyock 계정에 로그인해 주세요.");
+      const res = await fetch(`${FN_URL}/github-actions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": "Bearer " + session.access_token
+        },
+        body: JSON.stringify({ op, ...extra })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      return data;
+    }
+
+    function updateGitHubActionFields() {
+      const type = document.getElementById("ghActionType").value;
+      const file = ["read_file", "create_file", "update_file"].includes(type);
+      const write = ["create_file", "update_file"].includes(type);
+      const pr = type === "create_pull_request";
+      document.getElementById("ghPathField").hidden = !file;
+      document.getElementById("ghContentField").hidden = !write;
+      document.getElementById("ghMessageField").hidden = !write;
+      document.getElementById("ghPrTitleField").hidden = !pr;
+      document.getElementById("ghPrHeadField").hidden = !pr;
+      document.getElementById("ghPrBodyField").hidden = !pr;
+    }
+
+    function ghActionLabel(type) {
+      return ({read_file:"파일 읽기",create_file:"파일 생성",update_file:"파일 수정",create_pull_request:"Pull Request 생성",deploy_pages:"Pages 빌드 요청"})[type] || type;
+    }
+
+    async function refreshGitHubActions() {
+      const list = document.getElementById("ghActionList");
+      const notice = document.getElementById("ghActionNotice");
+      list.replaceChildren();
+      if (!session || !await ensureSession()) {
+        notice.textContent = "작업 승인 기능을 사용하려면 먼저 xyock 계정에 로그인해 주세요.";
+        return;
+      }
+      notice.textContent = "요청 내역을 불러오는 중…";
+      try {
+        const data = await githubActionApi("list");
+        if (!data.requests?.length) {
+          notice.textContent = "아직 요청한 작업이 없습니다.";
+          return;
+        }
+        notice.textContent = "각 작업은 개별 승인 후 별도로 실행해야 합니다.";
+        data.requests.forEach(item => {
+          const card = document.createElement("article");
+          card.className = "github-action-item";
+          const meta = document.createElement("div");
+          meta.className = "github-action-meta";
+          meta.textContent = ghActionLabel(item.action_type) + " · " + item.status + " · " + new Date(item.created_at).toLocaleString();
+          const detail = document.createElement("div");
+          detail.className = "github-action-detail";
+          const summary = { repo:item.repo, path:item.target_path, payload:item.payload, expires_at:item.expires_at };
+          detail.textContent = JSON.stringify(summary, null, 2);
+          card.append(meta, detail);
+          if (item.result) {
+            const result = document.createElement("div");
+            result.className = "github-action-result";
+            result.textContent = typeof item.result.decoded_content === "string"
+              ? item.result.decoded_content
+              : JSON.stringify(item.result, null, 2);
+            card.append(result);
+          }
+          const actions = document.createElement("div");
+          actions.className = "github-action-buttons";
+          if (item.status === "pending") {
+            const approve = document.createElement("button");
+            approve.className = "approve"; approve.type = "button"; approve.textContent = "승인";
+            approve.addEventListener("click", async () => {
+              if (!confirm("표시된 작업 내용 그대로 승인할까요?")) return;
+              try { await githubActionApi("approve", {id:item.id}); showToast("승인 완료. 실행 버튼을 눌러야 GitHub에 반영됩니다."); await refreshGitHubActions(); }
+              catch (e) { showToast("승인 실패: " + e.message); }
+            });
+            const reject = document.createElement("button");
+            reject.className = "reject"; reject.type = "button"; reject.textContent = "거부";
+            reject.addEventListener("click", async () => {
+              try { await githubActionApi("reject", {id:item.id}); showToast("작업을 거부했습니다."); await refreshGitHubActions(); }
+              catch (e) { showToast("거부 실패: " + e.message); }
+            });
+            actions.append(approve, reject);
+          } else if (item.status === "approved") {
+            const execute = document.createElement("button");
+            execute.className = "approve"; execute.type = "button"; execute.textContent = "승인된 작업 실행";
+            execute.addEventListener("click", async () => {
+              if (!confirm("승인한 작업을 GitHub 저장소 xyock/lock에 실행할까요?")) return;
+              execute.disabled = true;
+              try { const result = await githubActionApi("execute", {id:item.id}); showToast("실행 완료"); await refreshGitHubActions(); }
+              catch (e) { showToast("실행 실패: " + e.message); await refreshGitHubActions(); }
+            });
+            actions.append(execute);
+          }
+          if (actions.childElementCount) card.append(actions);
+          list.append(card);
+        });
+      } catch (e) {
+        notice.textContent = "요청 내역 오류: " + e.message;
+      }
+    }
+
+    async function createGitHubActionRequest() {
+      const type = document.getElementById("ghActionType").value;
+      const path = document.getElementById("ghTargetPath").value.trim();
+      const payload = {};
+      if (["read_file","create_file","update_file"].includes(type) && !path) {
+        showToast("파일 경로를 입력해 주세요."); return;
+      }
+      if (["create_file","update_file"].includes(type)) {
+        payload.content = document.getElementById("ghContent").value;
+        payload.message = document.getElementById("ghCommitMessage").value.trim();
+      }
+      if (type === "create_pull_request") {
+        payload.title = document.getElementById("ghPrTitle").value.trim();
+        payload.head = document.getElementById("ghPrHead").value.trim();
+        payload.body = document.getElementById("ghPrBody").value;
+        payload.base = "main";
+      }
+      const notice = document.getElementById("ghActionNotice");
+      notice.textContent = "작업 요청 중…";
+      try {
+        const result = await githubActionApi("request", {
+          action_type:type,
+          target_path:["read_file","create_file","update_file"].includes(type) ? path : null,
+          payload
+        });
+        notice.textContent = "요청이 등록됐습니다. 아래 카드에서 내용을 확인한 뒤 승인 또는 거부를 선택하세요.";
+        showToast("승인 대기 요청을 등록했습니다.");
+        await refreshGitHubActions();
+      } catch (e) {
+        notice.textContent = "요청 실패: " + e.message;
+      }
+    }
+
     async function init() {
       const oauthHash = new URLSearchParams(location.hash.replace(/^#/, ""));
       if (oauthHash.get("access_token") && oauthHash.get("refresh_token")) { try { const r = await fetch(AUTH_URL + "/user", {headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+oauthHash.get("access_token")}}); if(r.ok){ const u=await r.json(); saveSession({access_token:oauthHash.get("access_token"),refresh_token:oauthHash.get("refresh_token"),expires_at:Number(oauthHash.get("expires_at"))||Math.floor(Date.now()/1000)+3600,email:(u.email||"").toLowerCase(),user_id:u.id}); history.replaceState(null,"",location.pathname+location.search); } } catch {} }
@@ -1633,6 +1826,13 @@ int main() {
       });
       document.getElementById("pluginModal").addEventListener("click", e => {
         if (e.target.id === "pluginModal") e.currentTarget.classList.remove("show");
+      });
+      document.getElementById("ghActionType").addEventListener("change", updateGitHubActionFields);
+      document.getElementById("ghRequestBtn").addEventListener("click", createGitHubActionRequest);
+      document.getElementById("ghRefreshBtn").addEventListener("click", refreshGitHubActions);
+      updateGitHubActionFields();
+      document.getElementById("pluginBtn").addEventListener("click", () => {
+        if (session) refreshGitHubActions();
       });
       document.getElementById("githubPluginConnect").addEventListener("click", () => {
         location.href = AUTH_URL + "/authorize?provider=github&redirect_to=" + encodeURIComponent(location.origin + location.pathname);
