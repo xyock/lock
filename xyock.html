@@ -1322,15 +1322,19 @@ int main() {
 
       try {
         let aiQuestion = question;
+        let repoAttachments = [];
         const wantsRepoContext = /github|저장소|레포|repo|파일 목록|코드|코딩|앱을 만들|웹사이트|프로젝트|수정해|구현해/i.test(question);
 
-        // 로그인 사용자가 저장소/코드 작업을 요청하면 실제 GitHub 내용을 먼저 읽습니다.
+        // 질문 본문(4,000자 제한)과 분리해 실제 저장소 파일을 텍스트 첨부로 전달합니다.
         if (wantsRepoContext && session && await ensureSession()) {
           try {
             const inspected = await githubActionApi("inspect", { repo: "xyock/lock" });
-            const snippets = (inspected.selected || []).map(file =>
-              "\\n--- " + file.path + " ---\\n" + String(file.content || "").slice(0, 650)
-            ).join("").slice(0, 2600);
+            const selectedFiles = (inspected.selected || []).slice(0, 6);
+            repoAttachments = selectedFiles.map(file => ({
+              name: "GitHub/" + file.path,
+              type: "text/plain",
+              text: String(file.content || "").slice(0, 9000)
+            }));
             const fileList = (inspected.files || []).slice(0, 100).join(", ");
             aiQuestion = [
               question,
@@ -1338,16 +1342,15 @@ int main() {
               "[실제 GitHub 저장소 읽기 결과]",
               "저장소: " + inspected.repo + " / 브랜치: " + inspected.branch,
               "파일 목록: " + fileList,
-              "선택 파일 내용(일부):",
-              snippets,
-              "",
-              "위 내용은 연결된 GitHub 저장소에서 읽은 실제 데이터다. 읽지 않은 파일 내용을 추측하지 말고, 변경이 필요하면 변경 파일·전체 코드·커밋 메시지를 제안하되 아직 GitHub 파일을 수정했다고 말하지 마라."
+              "실제 파일 내용은 별도 텍스트 첨부로 전달했다. 첨부 파일을 먼저 읽고 답하라.",
+              "읽지 않은 파일 내용을 추측하지 말고, 실제로 확인한 파일과 확인하지 못한 파일을 구분하라. 변경 작업은 사용자의 요청 범위에서만 수행하라."
             ].join("\\n").slice(0, 3900);
           } catch (githubError) {
             aiQuestion += "\\n\\n[GitHub 저장소 읽기 실패: " + githubError.message + "]. 저장소를 읽었다고 주장하지 말고 연결 상태 문제를 설명해.";
           }
         }
 
+        const serializedAttachments = await Promise.all(attachments.map(serializeAttachment));
         const response = await fetch(`${FN_URL}/xyock-ai`, {
           method: "POST",
           headers: {
@@ -1355,7 +1358,7 @@ int main() {
             "apikey": SUPABASE_ANON_KEY,
             "Authorization": `Bearer ${isLoggedIn() ? session.access_token : SUPABASE_ANON_KEY}`
           },
-          body: JSON.stringify({ q: aiQuestion, model: getSelectedModel(), attachments: await Promise.all(attachments.map(serializeAttachment)) })
+          body: JSON.stringify({ q: aiQuestion, model: getSelectedModel(), attachments: [...serializedAttachments, ...repoAttachments].slice(0, 4) })
         });
 
         const data = await response.json().catch(() => ({}));
