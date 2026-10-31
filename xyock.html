@@ -176,6 +176,14 @@
     .secret-password-display { display:none; padding:12px; margin:12px 0; border:1px dashed rgba(122,229,179,.5); border-radius:8px; text-align:center; }
     .secret-password-display strong { display:block; font-size:1.25em; letter-spacing:2px; color:var(--accent); user-select:all; margin-top:6px; }
     .secret-input { width:100%; box-sizing:border-box; margin:10px 0; padding:13px; border-radius:8px; border:1px solid var(--border); background:var(--panel); color:var(--text); font:inherit; }
+    .remember-indicator { display:inline-flex; align-items:center; gap:7px; margin:0 0 8px 18px; color:#65a9ff; font-size:.78em; font-weight:600; opacity:0; transform:translateY(5px); }
+    .remember-indicator.show { animation: rememberReveal 2.2s ease forwards; }
+    .remember-bolt { width:19px; height:19px; overflow:visible; }
+    .remember-bolt path { fill:none; stroke:#398cff; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:42; stroke-dashoffset:42; animation: boltDraw .65s ease forwards; }
+    .remember-dot { fill:#8bc1ff; opacity:0; animation: boltDot .55s ease .25s forwards; }
+    @keyframes boltDraw { to { stroke-dashoffset:0; } }
+    @keyframes boltDot { 0% { opacity:0; transform:translateX(-5px); } 100% { opacity:1; transform:translateX(0); } }
+    @keyframes rememberReveal { 0% { opacity:0; transform:translateY(5px); } 18%,75% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-3px); } }
     .secret-mode-banner { display:none; padding:8px 14px; text-align:center; color:var(--accent); background:rgba(122,229,179,.07); border-bottom:1px solid rgba(122,229,179,.2); font-size:.85em; }
     body.secret-mode .secret-mode-banner { display:block; }
 
@@ -1344,6 +1352,7 @@ int main() {
       if (!query && attachments.length === 0) return;
 
       lastActivity = Date.now();
+      if (query && !isSecretChat) rememberUserPreference(query);
 
       document.getElementById("welcome")?.remove();
       addUserMessage([query || "첨부 파일을 확인해 줘.", ...attachments.map(f => `[첨부: ${f.name}]`)].join("\n"));
@@ -1447,7 +1456,11 @@ int main() {
           ? "[이전 대화 문맥]\n" + historyText +
             "\n[문맥 사용 지침]\n현재 질문은 위 대화의 연속일 수 있다. '그거', '아까 것', '그렇게', '수정해' 같은 표현은 앞선 대화에서 지칭 대상을 찾아 해석하라. 이미 제공된 정보나 합의된 사항을 다시 묻지 말고, 현재 질문과 이전 대화를 함께 고려해 자연스럽게 답하라. 이전 대화에 없는 사실은 지어내지 마라.\n\n"
           : "";
-        let aiQuestion = (contextInstruction + "[현재 질문]\n" + question).slice(0, 3900);
+        const savedMemories = isSecretChat ? [] : getLongTermMemories();
+        const memoryContext = savedMemories.length
+          ? "[사용자가 이전에 영구 기억해 달라고 요청한 선호 및 지침]\n" + savedMemories.map((item, index) => (index + 1) + ". " + item).join("\\n") + "\\n이 지침을 현재 대화와 이후 대화에서도 자연스럽게 반영하라. 현재 요청과 충돌하면 현재 요청을 우선하라.\\n\\n"
+          : "";
+        let aiQuestion = (memoryContext + contextInstruction + "[현재 질문]\\n" + question).slice(0, 3900);
         let repoAttachments = [];
         const wantsRepoContext = /github|저장소|레포|repo|파일 목록|코드|코딩|앱을 만들|웹사이트|프로젝트|수정해|구현해/i.test(question);
 
@@ -1797,6 +1810,48 @@ int main() {
       }
     }
 
+    function getLongTermMemories() {
+      try {
+        const value = JSON.parse(localStorage.getItem(XYOCK_MEMORY_KEY) || "[]");
+        return Array.isArray(value) ? value.filter(item => typeof item === "string").slice(0, 30) : [];
+      } catch { return []; }
+    }
+
+    function rememberUserPreference(message) {
+      const text = sanitize(message).trim();
+      const hasRememberCue = /기억해(?:줘|둬|주세요)?|잊지\s*마|앞으로(?:는)?|다음부터|항상|계속\s*해줘|기본적으로/i.test(text);
+      if (!hasRememberCue || text.length < 4) return false;
+      let preference = text
+        .replace(/(?:이것도\s*)?(?:꼭\s*)?기억해(?:줘|둬|주세요)?/gi, "")
+        .replace(/잊지\s*마(?:세요)?/gi, "")
+        .replace(/^.*?다음부터\s*/i, "")
+        .replace(/^.*?앞으로(?:는)?\s*/i, "")
+        .replace(/^.*?항상\s*/i, "")
+        .replace(/\s+/g, " ").trim();
+      if (!preference || /기억(?:하는|하기|기능|시스템).{0,12}(?:만들|구현|추가)/i.test(preference)) return false;
+      preference = preference.slice(0, 300);
+      const memories = getLongTermMemories();
+      const normalized = preference.toLocaleLowerCase();
+      const existing = memories.findIndex(item => item.toLocaleLowerCase() === normalized);
+      if (existing >= 0) memories.splice(existing, 1);
+      memories.push(preference);
+      try { localStorage.setItem(XYOCK_MEMORY_KEY, JSON.stringify(memories.slice(-30))); }
+      catch { showToast("기억을 저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요."); return false; }
+      showRememberIndicator();
+      return true;
+    }
+
+    function showRememberIndicator() {
+      const chat = document.getElementById("chat");
+      const indicator = document.createElement("div");
+      indicator.className = "remember-indicator";
+      indicator.innerHTML = '<svg class="remember-bolt" viewBox="0 0 24 24" aria-hidden="true"><circle class="remember-dot" cx="4" cy="4" r="2"/><path d="M13 2 5.5 13h5l-1 9L18.5 10h-5z"/></svg><span>remember</span>';
+      chat.appendChild(indicator);
+      requestAnimationFrame(() => indicator.classList.add("show"));
+      setTimeout(() => indicator.remove(), 2400);
+      scrollToBottom();
+    }
+
     function openSecretChatSetup() {
       if (isSecretChat) {
         isSecretChat = false;
@@ -1857,6 +1912,7 @@ int main() {
       document.getElementById("historyModal").classList.remove("show");
     }
 
+    const XYOCK_MEMORY_KEY = "xyock_long_term_memories_v1";
     let isSecretChat = false;
     let secretChatPassword = "";
 
