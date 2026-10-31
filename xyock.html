@@ -1228,7 +1228,7 @@ int main() {
       lastActivity = Date.now();
 
       document.getElementById("welcome")?.remove();
-      addUserMessage([query || "첨부 파일을 확인해 줘.", ...attachments.map(f => `[첨부: ${f.name}]`)].join("\\n"));
+      addUserMessage([query || "첨부 파일을 확인해 줘.", ...attachments.map(f => `[첨부: ${f.name}]`)].join("\n"));
 
       input.value = "";
       selectedAttachments = [];
@@ -1344,9 +1344,9 @@ int main() {
               "파일 목록: " + fileList,
               "실제 파일 내용은 별도 텍스트 첨부로 전달했다. 첨부 파일을 먼저 읽고 답하라.",
               "읽지 않은 파일 내용을 추측하지 말고, 실제로 확인한 파일과 확인하지 못한 파일을 구분하라. 변경 작업은 사용자의 요청 범위에서만 수행하라."
-            ].join("\\n").slice(0, 3900);
+            ].join("\n").slice(0, 3900);
           } catch (githubError) {
-            aiQuestion += "\\n\\n[GitHub 저장소 읽기 실패: " + githubError.message + "]. 저장소를 읽었다고 주장하지 말고 연결 상태 문제를 설명해.";
+            aiQuestion += "\n\n[GitHub 저장소 읽기 실패: " + githubError.message + "]. 저장소를 읽었다고 주장하지 말고 연결 상태 문제를 설명해.";
           }
         }
 
