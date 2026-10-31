@@ -732,7 +732,6 @@ AI 기반 코딩 웹 애플리케이션입니다. Supabase와 Kilo AI Gateway를
       document.getElementById("viewPython").classList.toggle("show", showPython);
       toggleMenu(false);
       if (showPython) {
-        if (selectedLanguage === "python") loadPython().catch(() => {});
         document.getElementById("codeArea").focus();
         history.replaceState(null, "", `${location.pathname}${location.search}#python`);
       } else {
