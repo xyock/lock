@@ -1664,6 +1664,7 @@ int main() {
     }
 
     let githubRepositoriesCache = [];
+    let githubRepositoriesCacheValid = false;
     let githubRepositoriesLoadedAt = 0;
     let githubRepositoriesPromise = null;
     const GITHUB_REPOSITORIES_CACHE_MS = 5 * 60 * 1000;
@@ -1696,7 +1697,7 @@ int main() {
         select.disabled = true;
         return [];
       }
-      const cacheFresh = githubRepositoriesCache.length &&
+      const cacheFresh = githubRepositoriesCacheValid &&
         Date.now() - githubRepositoriesLoadedAt < GITHUB_REPOSITORIES_CACHE_MS;
       if (!force && cacheFresh) {
         renderGitHubRepositories(githubRepositoriesCache);
@@ -1710,6 +1711,7 @@ int main() {
           const data = await githubActionApi("repositories");
           const repositories = Array.isArray(data.repositories) ? data.repositories : [];
           githubRepositoriesCache = repositories;
+          githubRepositoriesCacheValid = true;
           githubRepositoriesLoadedAt = Date.now();
           renderGitHubRepositories(repositories);
           return repositories;
