@@ -317,6 +317,7 @@
     @media (prefers-reduced-motion: reduce) { .plugin-btn { animation: none; } }
 
     .github-action-panel { margin-top:18px; padding-top:16px; border-top:1px solid #2b2b2b; }
+    .github-repo-select { width:100%; padding:11px 12px; border:1px solid #3a6654; border-radius:8px; background:#101713; color:#dfffee; font:inherit; }
     .github-action-title { font-size:.95em; font-weight:600; margin-bottom:10px; color:#eee; }
     .github-action-form { display:grid; gap:9px; }
     .github-action-form label { display:grid; gap:5px; color:#aaa; font-size:.8em; }
@@ -593,7 +594,12 @@
         </div>
       </div>
       <section class="github-action-panel" aria-labelledby="githubActionTitle">
-        <div class="github-action-title" id="githubActionTitle">xyock/lock 작업 승인</div>
+        <div class="github-action-title" id="githubActionTitle">GitHub 저장소 작업 승인</div>
+        <label class="github-action-form" style="margin-bottom:12px;color:#aaa;font-size:.8em">저장소 선택
+          <select id="ghRepoSelect" class="github-repo-select" disabled>
+            <option value="">저장소 목록 불러오는 중…</option>
+          </select>
+        </label>
         <p class="plugin-desc" style="margin:0 0 12px">작업을 요청하면 먼저 내용이 등록됩니다. 승인과 실행은 각각 별도 버튼을 눌러야 하며, 승인하지 않은 작업은 GitHub에 반영되지 않습니다.</p>
         <div class="github-action-form">
           <label>작업 종류
@@ -1657,6 +1663,44 @@ int main() {
       document.getElementById("historyModal").classList.remove("show");
     }
 
+    async function loadGitHubRepositories() {
+      const select = document.getElementById("ghRepoSelect");
+      const notice = document.getElementById("ghActionNotice");
+      if (!session || !await ensureSession()) {
+        select.replaceChildren(new Option("로그인 후 저장소를 불러올 수 있습니다.", ""));
+        select.disabled = true;
+        return [];
+      }
+      const previous = select.value;
+      select.disabled = true;
+      select.replaceChildren(new Option("저장소 불러오는 중…", ""));
+      try {
+        const data = await githubActionApi("repositories");
+        const repositories = Array.isArray(data.repositories) ? data.repositories : [];
+        select.replaceChildren();
+        if (!repositories.length) {
+          select.append(new Option("연결된 저장소가 없습니다.", ""));
+          select.disabled = true;
+          notice.textContent = "GitHub App 설정에서 사용할 저장소를 추가해 주세요.";
+          return [];
+        }
+        repositories.forEach(repo => {
+          const label = repo.full_name + (repo.private ? " · Private" : " · Public");
+          const option = new Option(label, repo.full_name);
+          option.dataset.defaultBranch = repo.default_branch || "main";
+          select.append(option);
+        });
+        select.value = repositories.some(r => r.full_name === previous) ? previous : repositories[0].full_name;
+        select.disabled = false;
+        return repositories;
+      } catch (e) {
+        select.replaceChildren(new Option("저장소 목록을 불러오지 못했습니다.", ""));
+        select.disabled = true;
+        notice.textContent = "저장소 목록 오류: " + e.message;
+        throw e;
+      }
+    }
+
     async function githubActionApi(op, extra = {}) {
       if (!session || !await ensureSession()) throw new Error("먼저 xyock 계정에 로그인해 주세요.");
       const res = await fetch(`${FN_URL}/github-actions`, {
@@ -1700,6 +1744,7 @@ int main() {
       }
       notice.textContent = "요청 내역을 불러오는 중…";
       try {
+        await loadGitHubRepositories();
         const data = await githubActionApi("list");
         if (!data.requests?.length) {
           notice.textContent = "아직 요청한 작업이 없습니다.";
@@ -1746,7 +1791,7 @@ int main() {
             const execute = document.createElement("button");
             execute.className = "approve"; execute.type = "button"; execute.textContent = "승인된 작업 실행";
             execute.addEventListener("click", async () => {
-              if (!confirm("승인한 작업을 GitHub 저장소 xyock/lock에 실행할까요?")) return;
+              if (!confirm("승인한 작업을 표시된 GitHub 저장소에 실행할까요?")) return;
               execute.disabled = true;
               try { const result = await githubActionApi("execute", {id:item.id}); showToast("실행 완료"); await refreshGitHubActions(); }
               catch (e) { showToast("실행 실패: " + e.message); await refreshGitHubActions(); }
@@ -1763,8 +1808,10 @@ int main() {
 
     async function createGitHubActionRequest() {
       const type = document.getElementById("ghActionType").value;
+      const repo = document.getElementById("ghRepoSelect").value;
       const path = document.getElementById("ghTargetPath").value.trim();
       const payload = {};
+      if (!repo) { showToast("먼저 GitHub 저장소를 선택해 주세요."); return; }
       if (["read_file","create_file","update_file"].includes(type) && !path) {
         showToast("파일 경로를 입력해 주세요."); return;
       }
@@ -1776,12 +1823,14 @@ int main() {
         payload.title = document.getElementById("ghPrTitle").value.trim();
         payload.head = document.getElementById("ghPrHead").value.trim();
         payload.body = document.getElementById("ghPrBody").value;
-        payload.base = "main";
+        const selectedRepo = document.getElementById("ghRepoSelect").selectedOptions[0];
+        payload.base = selectedRepo?.dataset.defaultBranch || "main";
       }
       const notice = document.getElementById("ghActionNotice");
       notice.textContent = "작업 요청 중…";
       try {
         const result = await githubActionApi("request", {
+          repo,
           action_type:type,
           target_path:["read_file","create_file","update_file"].includes(type) ? path : null,
           payload
@@ -1830,6 +1879,10 @@ int main() {
       document.getElementById("ghActionType").addEventListener("change", updateGitHubActionFields);
       document.getElementById("ghRequestBtn").addEventListener("click", createGitHubActionRequest);
       document.getElementById("ghRefreshBtn").addEventListener("click", refreshGitHubActions);
+      document.getElementById("ghRepoSelect").addEventListener("change", () => {
+        const repo = document.getElementById("ghRepoSelect").value;
+        if (repo) showToast("선택한 저장소: " + repo);
+      });
       updateGitHubActionFields();
       document.getElementById("pluginBtn").addEventListener("click", () => {
         if (session) refreshGitHubActions();
