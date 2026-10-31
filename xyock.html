@@ -130,7 +130,8 @@
     .model-options { display:grid;gap:10px; }
     .model-option { display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;text-align:left;border:1px solid #333;border-radius:9px;background:#101010;color:var(--text);cursor:pointer;font:inherit; }
     .model-option:hover,.model-option.selected { border-color:#35c9b8;background:#171d1c; }
-    .model-mark { width:34px;height:34px;flex:0 0 34px;border-radius:10px;display:grid;place-items:center;background:#202522;overflow:hidden; }\n    .model-mark svg { width:23px;height:23px;display:block; }
+    .model-mark { width:34px;height:34px;flex:0 0 34px;border-radius:10px;display:grid;place-items:center;background:#202522;overflow:hidden; }
+    .model-mark svg { width:23px;height:23px;display:block; }
     .model-copy { flex:1;min-width:0; }
     .model-name { display:block;font-weight:600;margin-bottom:3px; }
     .model-desc { display:block;color:var(--muted);font-size:.82em;line-height:1.4; }
@@ -353,7 +354,8 @@
     .plugin-intro { color: var(--muted); text-align: center; font-size: .9em; line-height: 1.5; margin: -12px 0 20px; }
     .plugin-list { display: grid; gap: 10px; }
     .plugin-card { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid #303030; border-radius: 12px; background: #101010; }
-    .plugin-symbol { width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:10px;background:#1d1d1d;overflow:hidden; }\n    .plugin-symbol svg { width:25px;height:25px;display:block; }
+    .plugin-symbol { width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:10px;background:#1d1d1d;overflow:hidden; }
+    .plugin-symbol svg { width:25px;height:25px;display:block; }
     .plugin-info { flex: 1; min-width: 0; }
     .plugin-name { color: #f1f1f1; font-weight: 600; }
     .plugin-desc { color: #888; font-size: .8em; line-height: 1.45; margin-top: 4px; }
@@ -622,7 +624,7 @@
         placeholder="xyock에게 질문하거나 코드 요청하기..."
         autocomplete="off"
       />
-      <button class="plugin-btn" id="pluginBtn" type="button" title="플러그인" aria-label="플러그인" aria-haspopup="dialog" aria-controls="pluginModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7V3m6 4V3M8 7h8a2 2 0 0 1 2 2v3a4 4 0 0 1-4 4h-1v5h-2v-5h-1a4 4 0 0 1-4-4V9a2 2 0 0 1 2-2Z"/><path d="M5 10H3m18 0h-2"/></svg></button>
+      <button class="plugin-btn" id="pluginBtn" type="button" title="플러그인" aria-label="플러그인" aria-haspopup="dialog" aria-controls="pluginModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7V3m6 4V3M8 7h8a2 2 0 0 1 2 2v3a4 4 0 0 1-4 4h-1v5h-2v-5h-1a4 4 0 0 1-4-4V9a2 2 0 0 1 2-2Z"/><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-.97-2.7-.97-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.82 1.23.82.71 1.21 1.87.86 2.33.66.07-.52.28-.86.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></button>
       <button class="round-btn send-btn" id="sendBtn" type="button" title="보내기" disabled>↑</button>
     </div>
   </div>
