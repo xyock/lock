@@ -588,11 +588,28 @@
           <div class="plugin-info">
             <div class="plugin-name">Supabase</div>
             <div class="plugin-desc">현재 xyock의 인증·데이터·AI 서버 연결을 사용합니다.</div>
-            <span class="plugin-status">현재 프로젝트 연결됨</span>
+            <span class="plugin-status" id="supabasePluginStatus">개인 Supabase 계정 연결 필요</span>
           </div>
-          <button class="plugin-action" id="supabasePluginOpen" type="button">대시보드</button>
+          <button class="plugin-action" id="supabasePluginConnect" type="button">Supabase 계정 연결</button>
         </div>
       </div>
+      <section class="github-action-panel" id="supabaseAccountPanel" aria-label="Supabase 계정 관리">
+        <div class="github-action-title">내 Supabase 프로젝트</div>
+        <p class="plugin-desc" style="margin:0 0 12px">각 사용자는 자신의 Supabase 계정을 연결합니다. XYOCK은 승인된 계정의 조직과 프로젝트만 표시합니다.</p>
+        <div class="github-action-form">
+          <label>조직
+            <select id="sbOrganizationSelect" class="github-repo-select" disabled><option value="">Supabase 연결 후 표시됩니다.</option></select>
+          </label>
+          <label>프로젝트
+            <select id="sbProjectSelect" class="github-repo-select" disabled><option value="">조직을 선택해 주세요.</option></select>
+          </label>
+          <div class="github-action-row">
+            <button class="plugin-action" id="sbRefreshBtn" type="button">목록 새로고침</button>
+            <button class="plugin-action" id="sbDisconnectBtn" type="button">연결 해제</button>
+          </div>
+          <div id="sbAccountNotice" class="plugin-desc" role="status" aria-live="polite">Supabase 계정을 연결하면 여기에 조직과 프로젝트가 표시됩니다.</div>
+        </div>
+      </section>
       <section class="github-action-panel" aria-labelledby="githubActionTitle">
         <div class="github-action-title" id="githubActionTitle">GitHub 저장소 작업 승인</div>
         <label class="github-action-form" style="margin-bottom:12px;color:#aaa;font-size:.8em">저장소 선택
@@ -1727,6 +1744,105 @@ int main() {
       return githubRepositoriesPromise;
     }
 
+    async function supabaseConnectApi(op, extra = {}) {
+      if (!session || !await ensureSession()) throw new Error("먼저 XYOCK 계정에 로그인해 주세요.");
+      const res = await fetch(`${FN_URL}/supabase-connect`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": "Bearer " + session.access_token
+        },
+        body: JSON.stringify({ op, ...extra })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      return data;
+    }
+
+    async function startSupabaseOAuth() {
+      const button = document.getElementById("supabasePluginConnect");
+      const notice = document.getElementById("sbAccountNotice");
+      try {
+        button.disabled = true;
+        notice.textContent = "Supabase 연결 준비 중…";
+        const data = await supabaseConnectApi("start");
+        if (!data.authorize_url) throw new Error("인증 주소를 받지 못했습니다.");
+        location.href = data.authorize_url;
+      } catch (e) {
+        notice.textContent = "연결 오류: " + e.message;
+        showToast("Supabase 연결을 시작하지 못했습니다.");
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function loadSupabaseAccount() {
+      const status = document.getElementById("supabasePluginStatus");
+      const orgSelect = document.getElementById("sbOrganizationSelect");
+      const notice = document.getElementById("sbAccountNotice");
+      if (!session || !await ensureSession()) {
+        status.textContent = "XYOCK 로그인 필요";
+        orgSelect.replaceChildren(new Option("로그인 후 이용할 수 있습니다.", ""));
+        orgSelect.disabled = true;
+        return;
+      }
+      try {
+        const state = await supabaseConnectApi("status");
+        if (!state.connected) {
+          status.textContent = "개인 Supabase 계정 연결 필요";
+          notice.textContent = "Supabase 계정을 연결해 주세요.";
+          orgSelect.replaceChildren(new Option("연결 후 표시됩니다.", ""));
+          orgSelect.disabled = true;
+          return;
+        }
+        status.textContent = "Supabase 계정 연결됨";
+        const data = await supabaseConnectApi("organizations");
+        const orgs = Array.isArray(data.organizations) ? data.organizations : [];
+        orgSelect.replaceChildren(new Option("조직 선택", ""));
+        orgs.forEach(org => orgSelect.add(new Option(org.name || org.slug || org.id, org.id || org.slug)));
+        orgSelect.disabled = orgs.length === 0;
+        notice.textContent = orgs.length ? "연결된 조직 " + orgs.length + "개" : "표시할 조직이 없습니다.";
+        if (orgs.length) await loadSupabaseProjects();
+      } catch (e) {
+        notice.textContent = "Supabase 조회 오류: " + e.message;
+      }
+    }
+
+    async function loadSupabaseProjects() {
+      const orgSelect = document.getElementById("sbOrganizationSelect");
+      const projectSelect = document.getElementById("sbProjectSelect");
+      const notice = document.getElementById("sbAccountNotice");
+      const organizationId = orgSelect.value;
+      projectSelect.replaceChildren(new Option("프로젝트 불러오는 중…", ""));
+      projectSelect.disabled = true;
+      if (!organizationId) return;
+      try {
+        const data = await supabaseConnectApi("projects", { organization_id: organizationId });
+        const projects = Array.isArray(data.projects) ? data.projects : [];
+        projectSelect.replaceChildren(new Option("프로젝트 선택", ""));
+        projects.forEach(project => projectSelect.add(new Option(project.name + " (" + project.region + ")", project.id || project.ref)));
+        projectSelect.disabled = projects.length === 0;
+        notice.textContent = "선택한 조직의 프로젝트 " + projects.length + "개";
+      } catch (e) {
+        projectSelect.replaceChildren(new Option("프로젝트 조회 실패", ""));
+        notice.textContent = "프로젝트 조회 오류: " + e.message;
+      }
+    }
+
+    async function disconnectSupabaseAccount() {
+      if (!confirm("XYOCK에서 이 Supabase 계정 연결을 해제할까요?")) return;
+      try {
+        await supabaseConnectApi("disconnect");
+        document.getElementById("sbProjectSelect").replaceChildren(new Option("조직을 선택해 주세요.", ""));
+        document.getElementById("sbProjectSelect").disabled = true;
+        showToast("Supabase 연결을 해제했습니다.");
+        await loadSupabaseAccount();
+      } catch (e) {
+        showToast("연결 해제 실패: " + e.message);
+      }
+    }
+
     async function githubActionApi(op, extra = {}) {
       if (!session || !await ensureSession()) throw new Error("먼저 xyock 계정에 로그인해 주세요.");
       const res = await fetch(`${FN_URL}/github-actions`, {
@@ -1923,11 +2039,13 @@ int main() {
       document.getElementById("githubPluginConnect").addEventListener("click", () => {
         location.href = AUTH_URL + "/authorize?provider=github&redirect_to=" + encodeURIComponent(location.origin + location.pathname);
       });
-      document.getElementById("supabasePluginOpen").addEventListener("click", () => {
-        window.open("https://supabase.com/dashboard/project/lhbdijxjnqbzmrvrvrkr", "_blank", "noopener,noreferrer");
-      });
+      document.getElementById("supabasePluginConnect").addEventListener("click", startSupabaseOAuth);
+      document.getElementById("sbRefreshBtn").addEventListener("click", loadSupabaseAccount);
+      document.getElementById("sbDisconnectBtn").addEventListener("click", disconnectSupabaseAccount);
+      document.getElementById("sbOrganizationSelect").addEventListener("change", loadSupabaseProjects);
       if (session) {
         document.getElementById("githubPluginStatus").textContent = "xyock 계정 로그인됨 · GitHub 권한은 별도 확인 필요";
+        loadSupabaseAccount();
       }
 
       document.getElementById("loginBtn").addEventListener("click", openLoginModal);
