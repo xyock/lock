@@ -78,19 +78,37 @@
     .header-icons {
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: flex-end;
+      gap: 8px;
       margin-left: auto;
       padding-left: 16px;
+      flex: 0 0 auto;
+      min-width: max-content;
+      position: relative;
+      z-index: 101;
     }
 
-    .mode-indicator { font-size: 0.8em; color: var(--muted); }
+    .mode-indicator { font-size: 0.8em; color: var(--muted); flex: 0 0 auto; pointer-events: none; }
 
     .auth-col {
       display: flex;
+      flex: 0 0 auto;
       flex-direction: row;
       align-items: center;
-      gap: 6px;
+      justify-content: flex-end;
+      gap: 8px;
+      position: relative;
+      z-index: 102;
     }
+
+    .auth-col > button {
+      position: relative;
+      flex: 0 0 auto;
+      pointer-events: auto;
+      touch-action: manipulation;
+    }
+
+    .header-icons button { isolation: isolate; }
 
     .icon-btn {
       width: 40px;
@@ -558,8 +576,12 @@
         max-width: 46px;
         max-height: 46px;
       }
-      .header-icons { gap: 4px; padding-left: 8px; }
-      .auth-col { gap: 4px; }
+      .header-icons { gap: 6px; padding-left: 8px; }
+      .mode-indicator { display: none; }
+      .auth-col { gap: 6px; }
+      .auth-col .icon-btn, .auth-col .model-picker-btn { width: 38px; height: 38px; }
+      .auth-col .model-picker-btn { flex-basis: 38px; }
+      .login-btn { height: 38px; }
       .login-btn { padding: 0 10px; }
       .chat-container { padding: 15px; }
       .input-section { padding: 10px 12px 14px; }
