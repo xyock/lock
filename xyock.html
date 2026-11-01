@@ -50,9 +50,7 @@
       position: sticky;
       top: 0;
       background: var(--bg);
-      z-index: 9999;
-      isolation: isolate;
-      overflow: visible;
+      z-index: 100;
     }
 
     .logo {
@@ -87,8 +85,7 @@
       flex: 0 0 auto;
       min-width: max-content;
       position: relative;
-      z-index: 10000;
-      pointer-events: auto;
+      z-index: 101;
     }
 
     .mode-indicator { font-size: 0.8em; color: var(--muted); flex: 0 0 auto; pointer-events: none; }
@@ -101,20 +98,15 @@
       justify-content: flex-end;
       gap: 8px;
       position: relative;
-      z-index: 10001;
-      pointer-events: auto;
-      isolation: isolate;
+      z-index: 102;
     }
 
     .auth-col > button {
       position: relative;
-      z-index: 10002;
-      display: inline-flex;
+      position: relative;
       flex: 0 0 auto;
-      pointer-events: auto !important;
+      pointer-events: auto;
       touch-action: manipulation;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .header-icons button { isolation: isolate; }
@@ -587,9 +579,8 @@
       }
       .header-icons { gap: 6px; padding-left: 8px; }
       .mode-indicator { display: none; }
-      .auth-col { gap: 6px; flex-shrink: 0; }
+      .auth-col { gap: 6px; }
       .auth-col .icon-btn, .auth-col .model-picker-btn { width: 38px; height: 38px; }
-      .auth-col > button { position: relative; z-index: 10002; pointer-events: auto !important; }
       .auth-col .model-picker-btn { flex-basis: 38px; }
       .login-btn { height: 38px; }
       .login-btn { padding: 0 10px; }
