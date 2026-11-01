@@ -2322,6 +2322,19 @@ int main() {
       );
     }
 
+    // 플러그인 버튼은 다른 초기화 오류와 관계없이 항상 열리도록 캡처 단계에서 처리합니다.
+    document.addEventListener("click", function(event) {
+      const button = event.target.closest("#pluginBtn");
+      if (!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const modal = document.getElementById("pluginModal");
+      if (modal) modal.classList.add("show");
+      if (typeof refreshGitHubActions === "function") {
+        try { refreshGitHubActions(); } catch (error) { console.error("GitHub 새로고침 오류:", error); }
+      }
+    }, true);
+
     init();
   </script>
 </body>
