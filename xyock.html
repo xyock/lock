@@ -1420,24 +1420,7 @@ console.log(arr.sort((a, b) => a - b));`,
           html: `import java.net.http.*;
 public class HTMLTest {
   public static void main(String[] args) {
-    String html = "<html><body><h1>Hello from Java</h1><script id="xy-beta-menu-addition-script">
-(() => {
- const trigger=document.getElementById('xyMenuOpen'),menu=document.getElementById('xyHeaderMenu');
- if(!trigger||!menu||trigger.dataset.menuReady)return;trigger.dataset.menuReady='1';
- const close=()=>{menu.hidden=true;trigger.setAttribute('aria-expanded','false');};
- trigger.addEventListener('click',e=>{e.stopPropagation();menu.hidden=!menu.hidden;trigger.setAttribute('aria-expanded',String(!menu.hidden));});
- menu.addEventListener('click',e=>{const item=e.target.closest('[data-xy-menu]');if(!item)return;close();const a=item.dataset.xyMenu;
- if(a==='history')document.getElementById('historyBtn')?.click();
- if(a==='models')document.getElementById('modelPickerBtn')?.click();
- if(a==='plugins')document.getElementById('pluginBtn')?.click();
- if(a==='login')document.getElementById('loginBtn')?.click();
- if(a==='readme')window.open('https://github.com/xyock/lock#readme','_blank','noopener');
- });
- document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!trigger.contains(e.target))close();});
- document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
-})();
-</script>
-</body></html>";
+    String html = "<html><body><h1>Hello from Java</h1></body></html>";
     System.out.println(html);
   }
 }`
@@ -2498,5 +2481,22 @@ int main() {
 
     init();
   </script>
+<script id="xy-beta-menu-addition-script">
+(() => {
+ const trigger=document.getElementById('xyMenuOpen'),menu=document.getElementById('xyHeaderMenu');
+ if(!trigger||!menu||trigger.dataset.menuReady)return;trigger.dataset.menuReady='1';
+ const close=()=>{menu.hidden=true;trigger.setAttribute('aria-expanded','false');};
+ trigger.addEventListener('click',e=>{e.stopPropagation();menu.hidden=!menu.hidden;trigger.setAttribute('aria-expanded',String(!menu.hidden));});
+ menu.addEventListener('click',e=>{const item=e.target.closest('[data-xy-menu]');if(!item)return;close();const a=item.dataset.xyMenu;
+ if(a==='history')document.getElementById('historyBtn')?.click();
+ if(a==='models')document.getElementById('modelPickerBtn')?.click();
+ if(a==='plugins')document.getElementById('pluginBtn')?.click();
+ if(a==='login')document.getElementById('loginBtn')?.click();
+ if(a==='readme')window.open('https://github.com/xyock/lock#readme','_blank','noopener');
+ });
+ document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!trigger.contains(e.target))close();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+})();
+</script>
 </body>
 </html>
