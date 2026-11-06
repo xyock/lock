@@ -608,7 +608,7 @@
       top: 0 !important;
       bottom: auto !important;
       display: grid !important;
-      grid-template-columns: max-content 44px 44px 44px auto !important;
+      grid-template-columns: max-content 44px auto !important;
       align-items: center !important;
       justify-items: stretch !important;
       gap: 10px !important;
@@ -677,7 +677,7 @@
       color: #55dbc4 !important;
     }
     #xyMenuOpen {
-      grid-column: 4 !important; grid-row: 1 !important; justify-self: center !important;
+      grid-column: 2 !important; grid-row: 1 !important; justify-self: center !important;
       position: static !important; width: 44px !important; height: 40px !important;
       padding: 0 !important; border: 1px solid #29312f !important; border-radius: 11px !important;
       background: #101414 !important; color: #e9f0ee !important; display: grid !important;
@@ -685,7 +685,7 @@
     }
     #xyMenuOpen:hover { border-color: #55dbc4 !important; color: #55dbc4 !important; }
     #loginBtn {
-      grid-column: 5 !important;
+      grid-column: 3 !important;
       grid-row: 1 !important;
       position: static !important;
       inset: auto !important;
@@ -715,7 +715,7 @@
     #loginBtn::before, #loginBtn::after { content: none !important; display: none !important; }
     @media (max-width: 480px) {
       header {
-        grid-template-columns: max-content 38px 38px 38px auto !important;
+        grid-template-columns: max-content 38px auto !important;
         gap: 6px !important;
         padding: 0 10px !important;
         height: 62px !important;
@@ -787,8 +787,6 @@ h1,h2,h3,.logo,.xy-screen-title,.xy-menu-link{letter-spacing:-.035em}
     <div class="header-icons">
       <span class="mode-indicator" id="modeIndicator">xyock</span>
       <div class="auth-col">
-        <button class="icon-btn" id="historyBtn" type="button" title="대화 기록" aria-label="대화 기록" onclick="openHistoryModal(); return false;">☰</button>
-        <button class="model-picker-btn" id="modelPickerBtn" type="button" title="AI 모델 선택" aria-label="AI 모델 선택" onclick="openModelModal(); return false;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 9.2 21.2 12 14.8 14.8 12 21.2 9.2 14.8 2.8 12 9.2 9.2Z"/><path d="M19 2.5 19.9 4.6 22 5.5 19.9 6.4 19 8.5 18.1 6.4 16 5.5 18.1 4.6Z"/></svg></button>
         <button class="icon-btn xy-menu-trigger" id="xyMenuOpen" type="button" aria-label="메뉴 열기" title="메뉴">☰</button>
         <button class="login-btn" id="loginBtn" type="button">locked</button>
       </div>
