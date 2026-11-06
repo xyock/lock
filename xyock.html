@@ -103,13 +103,17 @@
 
     .auth-col > button {
       position: relative;
-      position: relative;
       flex: 0 0 auto;
-      pointer-events: auto;
+      z-index: 110;
+      pointer-events: auto !important;
       touch-action: manipulation;
+      cursor: pointer;
     }
 
+    .header-icons, .auth-col { pointer-events: auto; }
     .header-icons button { isolation: isolate; }
+    #historyBtn, #modelPickerBtn { position: relative; z-index: 111; }
+    #historyBtn svg, #modelPickerBtn svg { pointer-events: none; }
 
     .icon-btn {
       width: 40px;
@@ -2262,11 +2266,22 @@ int main() {
         loadSupabaseAccount();
       }
 
-      document.getElementById("loginBtn").addEventListener("click", openLoginModal);
-      document.getElementById("historyBtn").addEventListener("click", openHistoryModal);
-      document.getElementById("historyCloseBtn").addEventListener("click", () => document.getElementById("historyModal").classList.remove("show"));
-      document.getElementById("newChatBtn").addEventListener("click", startNewConversation);
-      document.getElementById("modelPickerBtn").addEventListener("click", openModelModal);
+      document.getElementById("loginBtn").onclick = openLoginModal;
+      // 메뉴바(☰)는 대화 기록, 반짝이 버튼은 모델 선택 창을 엽니다.
+      const historyButton = document.getElementById("historyBtn");
+      const modelButton = document.getElementById("modelPickerBtn");
+      historyButton.onclick = event => {
+        event.preventDefault();
+        event.stopPropagation();
+        openHistoryModal();
+      };
+      modelButton.onclick = event => {
+        event.preventDefault();
+        event.stopPropagation();
+        openModelModal();
+      };
+      document.getElementById("historyCloseBtn").onclick = () => document.getElementById("historyModal").classList.remove("show");
+      document.getElementById("newChatBtn").onclick = startNewConversation;
       document.getElementById("modelModalClose").addEventListener("click", closeModelModal);
       document.getElementById("modelOptions").addEventListener("click", e => {
         const option = e.target.closest("[data-model]");
