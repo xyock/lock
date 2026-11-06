@@ -734,6 +734,14 @@
 .xy-header-menu button:hover{background:#252525}
 @media(max-width:480px){.xy-header-menu{top:68px;right:10px}}
 </style>
+
+<style id="xy-beta-settings-style">
+.xy-screen{position:fixed;inset:0;z-index:1600;display:none;overflow:auto;background:#070909;color:#f5f7f6;padding:clamp(20px,5vw,52px)}.xy-screen.open{display:block}.xy-screen-head{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:900px;margin:0 auto}.xy-screen-title{font-size:clamp(30px,6vw,52px);font-weight:850}.xy-close{border:1px solid #303b38;background:#111716;color:#fff;border-radius:12px;padding:11px 15px;font-weight:700;cursor:pointer}
+.xy-menu-list,.xy-settings{max-width:900px;margin:8vh auto 0}.xy-menu-link{width:100%;display:flex;justify-content:space-between;padding:25px 6px;background:transparent;border:0;border-bottom:1px solid #28302e;color:#f3f6f5;font-size:clamp(22px,4vw,34px);font-weight:750;cursor:pointer}.xy-menu-footer{max-width:900px;margin:12vh auto 0;display:flex;justify-content:space-between;gap:12px}.xy-menu-footer button,.xy-setting-row button,.xy-setting-panel button{border:1px solid #38423f;background:#121817;color:#f4f7f5;border-radius:10px;padding:11px 14px;cursor:pointer}.xy-setting-row{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:24px 4px;border-bottom:1px solid #29312f;font-size:clamp(18px,3.4vw,25px);font-weight:700}.xy-setting-row button.active,.xy-setting-panel button.xy-primary{border-color:var(--accent);background:#14312c;color:var(--accent)}.xy-setting-panel{padding:18px 4px 24px;border-bottom:1px solid #29312f;color:#b9c3bf}.xy-setting-panel p{margin:0 0 12px;line-height:1.6}.xy-setting-panel input{display:block;width:min(460px,100%);padding:13px 14px;border:1px solid #38423f;border-radius:10px;background:#0e1312;color:#fff;font-size:16px;margin:8px 0}.xy-setting-panel a{color:var(--accent)}
+.xy-gate{position:fixed;inset:0;z-index:5000;background:#050606;display:none;align-items:center;justify-content:center;padding:22px}.xy-gate.open{display:flex}.xy-gate-card{width:min(420px,100%);padding:30px;border:1px solid #34413d;border-radius:20px;background:#101615;color:#fff}.xy-gate-card input{width:100%;padding:13px;background:#080c0b;color:#fff;border:1px solid #394641;border-radius:10px;margin:10px 0}.xy-code-entry{border:1px solid #293532;border-radius:14px;background:#111716;padding:16px;margin:12px 0}.xy-code-entry pre{white-space:pre-wrap;overflow:auto;max-height:260px;font-size:12px}
+body.xy-light{color-scheme:light;background:#f4f7f6!important;color:#15201c!important}body.xy-light header{background:#fff!important;border-color:#d6dfdc!important}body.xy-light .xy-screen{background:#f4f7f6;color:#15201c}body.xy-light .xy-screen-title,body.xy-light .xy-menu-link,body.xy-light .xy-menu-footer button{color:#15201c}body.xy-light .xy-menu-link{border-color:#d6dfdc}body.xy-light .xy-close,body.xy-light .xy-menu-footer button,body.xy-light .xy-setting-row button,body.xy-light .xy-setting-panel button{background:#fff;color:#26332e;border-color:#d6dfdc}body.xy-light .xy-setting-panel{color:#52615a}body.xy-light .xy-setting-panel input{background:#fff;color:#15201c;border-color:#ccd7d2}body.xy-light .welcome h1{color:#15201c!important}body.xy-light .welcome p{color:#64736d!important}body.xy-light .input-section{background:linear-gradient(180deg,transparent,#f4f7f6 32%)!important}body.xy-light .input-wrapper{background:#fff!important;border-color:#d0dbd6!important}body.xy-light .search-input{color:#15201c!important}body.xy-light .message.user .bubble{background:#e2f3ee;color:#15201c;border-color:#c5e6dc}body.xy-light .message.ai .bubble{color:#26332e}body.xy-light .code-card{background:#fff!important;border-color:#d6dfdc!important}body.xy-light .code-card-header{background:#edf2f0!important}body.xy-light .modal-content{background:#fff!important;color:#15201c!important}
+@media(max-width:620px){.xy-menu-list,.xy-settings{margin-top:6vh}.xy-menu-link{padding:21px 4px}.xy-setting-row{font-size:18px}.xy-menu-footer{margin-top:8vh}}
+</style>
 </head>
 
 <body>
@@ -752,13 +760,17 @@
       </div>
     </div>
   </header>
-  <div id="xyHeaderMenu" class="xy-header-menu" hidden role="menu" aria-label="XYOCK 메뉴">
-    <button type="button" data-xy-menu="history">대화 기록</button>
-    <button type="button" data-xy-menu="models">AI 모델 선택</button>
-    <button type="button" data-xy-menu="plugins">플러그인</button>
-    <button type="button" data-xy-menu="readme">README</button>
-    <button type="button" data-xy-menu="login">Sign in</button>
-  </div>
+
+<section class="xy-screen" id="xyMenu"><div class="xy-screen-head"><div class="xy-screen-title" data-i18n="menu">메뉴</div><button class="xy-close" data-xy-close="xyMenu">닫기 ✕</button></div><nav class="xy-menu-list"><button class="xy-menu-link" data-xy-go="plugins">플러그인 <span>›</span></button><button class="xy-menu-link" data-xy-go="readme">README <span>↗</span></button><button class="xy-menu-link" data-xy-go="codes">코드 기록 <span>›</span></button><button class="xy-menu-link" data-xy-go="sessions">세션 <span>›</span></button></nav><div class="xy-menu-footer"><button data-xy-go="account">계정 설정</button><button data-xy-go="newchat">＋ 새 대화</button></div></section>
+<section class="xy-screen" id="xyAccount"><div class="xy-screen-head"><div class="xy-screen-title">Settings</div><button class="xy-close" data-xy-close="xyAccount">닫기 ✕</button></div><div class="xy-settings">
+<div class="xy-setting-row"><span>Language</span><span><button data-xy-lang="ko">한국어</button> <button data-xy-lang="en">English</button></span></div>
+<div class="xy-setting-row"><span>Plugins</span><span>›</span></div><div class="xy-setting-panel"><p>GitHub 및 Supabase 연결과 플러그인 관리</p><button id="xyOpenPlugins" class="xy-primary">플러그인 관리 열기</button><p style="margin-top:14px"><a href="https://github.com/xyock/lock" target="_blank" rel="noopener">xyock/lock GitHub 저장소</a></p></div>
+<div class="xy-setting-row"><span>Passwords</span><span>›</span></div><div class="xy-setting-panel"><p>사이트 방문 시 입력할 화면 잠금 암호입니다. 서버 계정 인증을 대체하지 않습니다.</p><input id="xyPassword" type="password" autocomplete="new-password" placeholder="새 암호 (4자 이상)"><button id="xyApplyPassword" class="xy-primary">Apply</button> <button id="xyRemovePassword">암호 해제</button></div>
+<div class="xy-setting-row"><span>Theme</span><span><button data-xy-theme="light">Light</button> <button data-xy-theme="dark">Dark</button></span></div>
+<div class="xy-setting-row"><span>Account</span><span>›</span></div><div class="xy-setting-panel"><p>닉네임은 환영 문구에 표시됩니다.</p><input id="xyNickname" maxlength="28" placeholder="닉네임"><button id="xySaveNickname" class="xy-primary">저장</button></div>
+</div></section>
+<section class="xy-screen" id="xyCodes"><div class="xy-screen-head"><div class="xy-screen-title">Code history</div><button class="xy-close" data-xy-close="xyCodes">닫기 ✕</button></div><div class="xy-settings"><p>이 브라우저에서 생성한 코드 기록</p><div id="xyCodeList"></div></div></section>
+<div class="xy-gate" id="xyGate"><div class="xy-gate-card"><h1>xyock</h1><p>계속하려면 암호를 입력하세요.</p><input id="xyGateInput" type="password" placeholder="암호"><button id="xyGateSubmit" class="xy-primary">입장</button><p id="xyGateError" role="alert"></p></div></div>
 
   <div class="chat-container" id="chat">
     <div class="welcome" id="welcome">
@@ -855,6 +867,7 @@
       <input id="loginPassword" type="password" class="modal-input" placeholder="Password" autocomplete="current-password" maxlength="100" />
       <div class="modal-error" id="loginError"></div>
       <button class="modal-btn primary" id="loginSubmit" type="button" style="width:100%">이메일로 로그인</button>
+      <button class="modal-btn" id="signupSubmit" type="button" style="width:100%;margin-top:8px">Create Account</button>
       <div class="login-divider">또는 간편 로그인</div>
       <div class="social-login-stack">
         <button class="btn-social btn-google" id="googleLogin" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.9 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8z"/><path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6 29.5 4 24 4A20 20 0 0 0 5.8 15.1l6.8 5.3C14.2 15.6 18.7 12 24 12z"/></svg>Google로 로그인</button>
@@ -1135,6 +1148,21 @@
         clearSession();
         return false;
       }
+    }
+
+    async function signup(email, password) {
+      const res = await fetch(`${AUTH_URL}/signup`, {
+        method: "POST",
+        headers: { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.msg || data.message || data.error_description || `signup HTTP ${res.status}`);
+      if (data.access_token && data.refresh_token) {
+        saveSession(toSession(data, email));
+        return "signed_in";
+      }
+      return "check_email";
     }
 
     async function login(email, password) {
@@ -1420,7 +1448,30 @@ console.log(arr.sort((a, b) => a - b));`,
           html: `import java.net.http.*;
 public class HTMLTest {
   public static void main(String[] args) {
-    String html = "<html><body><h1>Hello from Java</h1></body></html>";
+    String html = "<html><body><h1>Hello from Java</h1>
+<script id="xy-beta-settings-controller">
+(() => {
+ const $=id=>document.getElementById(id),K={nick:"xyock_beta_nickname_v2",theme:"xyock_beta_theme_v2",lang:"xyock_beta_language_v2",pass:"xyock_beta_password_v2",codes:"xyock_beta_code_history_v2"};
+ const get=(k,d="")=>{try{return localStorage.getItem(k)||d}catch{return d}},set=(k,v)=>{try{localStorage.setItem(k,v)}catch{}};
+ const words={ko:{menu:"메뉴",plugins:"플러그인",sessions:"세션",account:"계정 설정",newchat:"새 대화",welcome:"무엇을 도와드릴까요?",sub:"무엇이든 질문하거나 코드를 작성해 보세요."},en:{menu:"Menu",plugins:"Plugins",sessions:"Sessions",account:"Account settings",newchat:"New chat",welcome:"How can I help?",sub:"Ask anything or get help writing code."}};
+ const lang=()=>get(K.lang,"ko")==="en"?"en":"ko",closeScreens=()=>["xyMenu","xyAccount","xyCodes"].forEach(id=>$(id)?.classList.remove("open")),openScreen=id=>{closeScreens();$(id)?.classList.add("open")};
+ function applyLanguage(){const d=words[lang()];document.querySelectorAll("[data-i18n]").forEach(el=>{if(d[el.dataset.i18n])el.textContent=d[el.dataset.i18n]});const w=$("welcome"),name=get(K.nick).trim();if(w){const h=w.querySelector("h1"),p=w.querySelector("p");if(h)h.textContent=name?(lang()==="ko"?"환영합니다, "+name+"!":"Welcome, "+name+"!"):d.welcome;if(p)p.textContent=d.sub}if($("searchInput"))$("searchInput").placeholder=lang()==="ko"?"질문하거나 코드를 요청하세요...":"Ask a question or request code...";document.querySelectorAll("[data-xy-lang]").forEach(b=>b.classList.toggle("active",b.dataset.xyLang===lang()))}
+ function setTheme(v){set(K.theme,v);document.body.classList.toggle("xy-light",v==="light");document.querySelectorAll("[data-xy-theme]").forEach(b=>b.classList.toggle("active",b.dataset.xyTheme===v))}
+ document.addEventListener("click",e=>{const close=e.target.closest("[data-xy-close]");if(close){closeScreens();return}const a=e.target.closest("[data-xy-go]");if(!a)return;switch(a.dataset.xyGo){case"readme":window.open("https://github.com/xyock/lock#readme","_blank","noopener");break;case"plugins":openScreen("xyAccount");$("xyOpenPlugins")?.scrollIntoView({behavior:"smooth",block:"center"});break;case"account":openScreen("xyAccount");break;case"codes":openScreen("xyCodes");renderCodes();break;case"sessions":closeScreens();$("historyBtn")?.click();break;case"newchat":closeScreens();$("newChatBtn")?.click();break}});
+ $("xyMenuOpen")?.addEventListener("click",()=>openScreen("xyMenu"));$("xyOpenPlugins")?.addEventListener("click",()=>$("pluginBtn")?.click());
+ document.querySelectorAll("[data-xy-theme]").forEach(b=>b.addEventListener("click",()=>setTheme(b.dataset.xyTheme)));document.querySelectorAll("[data-xy-lang]").forEach(b=>b.addEventListener("click",()=>{set(K.lang,b.dataset.xyLang);applyLanguage()}));
+ $("xySaveNickname")?.addEventListener("click",()=>{set(K.nick,($("xyNickname")?.value||"").trim());applyLanguage();alert(lang()==="ko"?"닉네임을 저장했습니다.":"Nickname saved.")});
+ async function hash(p,s){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(p),"PBKDF2",false,["deriveBits"]),b=await crypto.subtle.deriveBits({name:"PBKDF2",salt:new TextEncoder().encode(s),iterations:120000,hash:"SHA-256"},k,256);return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("")}
+ $("xyApplyPassword")?.addEventListener("click",async()=>{const p=$("xyPassword")?.value||"";if(p.length<4){alert("암호를 4자 이상 입력하세요.");return}try{const salt=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,"0")).join("");set(K.pass,JSON.stringify({salt,hash:await hash(p,salt)}));$("xyPassword").value="";alert("암호가 저장되었습니다.")}catch{alert("이 브라우저에서는 암호 설정을 지원하지 않습니다.")}});
+ $("xyRemovePassword")?.addEventListener("click",()=>{try{localStorage.removeItem(K.pass)}catch{}alert("암호를 해제했습니다.")});
+ async function gate(){let v;try{v=JSON.parse(get(K.pass))}catch{return}if(!v?.salt||!v?.hash)return;$("xyGate")?.classList.add("open");const verify=async()=>{try{if(await hash($("xyGateInput").value,v.salt)===v.hash){$("xyGate").classList.remove("open");$("xyGateInput").value="";$("xyGateError").textContent=""}else $("xyGateError").textContent="암호가 올바르지 않습니다."}catch{$("xyGateError").textContent="암호를 확인하지 못했습니다."}};$("xyGateSubmit")?.addEventListener("click",verify);$("xyGateInput")?.addEventListener("keydown",e=>{if(e.key==="Enter")verify()})}
+ function list(){try{const v=JSON.parse(get(K.codes,"[]"));return Array.isArray(v)?v:[]}catch{return[]}}
+ function renderCodes(){const root=$("xyCodeList");if(!root)return;root.replaceChildren();const a=list();if(!a.length){root.textContent="아직 저장된 코드가 없습니다.";return}a.slice().reverse().forEach(v=>{const card=document.createElement("article"),b=document.createElement("b"),pre=document.createElement("pre"),copy=document.createElement("button");card.className="xy-code-entry";b.textContent=(v.lang||"code")+" · "+new Date(v.time).toLocaleString();pre.textContent=v.code||"";copy.type="button";copy.textContent="복사";copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(v.code||"");copy.textContent="복사됨"}catch{copy.textContent="복사 실패"}});card.append(b,pre,copy);root.append(card)})}
+ function collect(){document.querySelectorAll("#chat .code-card").forEach(card=>{const code=card.querySelector("pre code");if(!code?.textContent.trim()||card.dataset.xySaved)return;const a=list();a.push({lang:card.querySelector(".code-card-language")?.textContent||"code",code:code.textContent,time:Date.now()});set(K.codes,JSON.stringify(a.slice(-100)));card.dataset.xySaved="1"})}
+ if($("chat")&&window.MutationObserver)new MutationObserver(collect).observe($("chat"),{childList:true,subtree:true,characterData:true});setTheme(get(K.theme,"dark"));applyLanguage();gate();
+})();
+</script>
+</body></html>";
     System.out.println(html);
   }
 }`
@@ -2424,6 +2475,22 @@ int main() {
         showToast("모델 변경: " + option.querySelector(".model-name").textContent);
       });
       document.getElementById("loginSubmit").addEventListener("click", submitLogin);
+      document.getElementById("signupSubmit").addEventListener("click", async () => {
+        if (loginPending) return;
+        const email = sanitize(document.getElementById("loginEmail").value).trim().slice(0, 200);
+        const password = document.getElementById("loginPassword").value;
+        const errEl = document.getElementById("loginError");
+        if (!email || !password) { errEl.textContent = "이메일과 비밀번호를 입력해 주세요."; return; }
+        if (password.length < 6) { errEl.textContent = "비밀번호는 6자 이상 입력해 주세요."; return; }
+        loginPending = true; errEl.textContent = "계정을 만드는 중...";
+        try {
+          const result = await signup(email, password);
+          if (result === "signed_in") { closeLoginModal(); updateUI(); addAIMessage(email + " 계정이 생성되고 로그인되었습니다.", "success"); }
+          else errEl.textContent = "가입 요청을 보냈습니다. 이메일 인증이 필요하면 이메일을 확인한 뒤 로그인하세요.";
+        } catch (e) { errEl.textContent = "회원가입 실패: " + e.message; }
+        finally { loginPending = false; }
+      });
+
       const oauthRedirect = encodeURIComponent(location.origin + location.pathname);
       document.getElementById("googleLogin").addEventListener("click", () => {
         location.href = AUTH_URL + "/authorize?provider=google&redirect_to=" + oauthRedirect;
@@ -2481,22 +2548,6 @@ int main() {
 
     init();
   </script>
-<script id="xy-beta-menu-addition-script">
-(() => {
- const trigger=document.getElementById('xyMenuOpen'),menu=document.getElementById('xyHeaderMenu');
- if(!trigger||!menu||trigger.dataset.menuReady)return;trigger.dataset.menuReady='1';
- const close=()=>{menu.hidden=true;trigger.setAttribute('aria-expanded','false');};
- trigger.addEventListener('click',e=>{e.stopPropagation();menu.hidden=!menu.hidden;trigger.setAttribute('aria-expanded',String(!menu.hidden));});
- menu.addEventListener('click',e=>{const item=e.target.closest('[data-xy-menu]');if(!item)return;close();const a=item.dataset.xyMenu;
- if(a==='history')document.getElementById('historyBtn')?.click();
- if(a==='models')document.getElementById('modelPickerBtn')?.click();
- if(a==='plugins')document.getElementById('pluginBtn')?.click();
- if(a==='login')document.getElementById('loginBtn')?.click();
- if(a==='readme')window.open('https://github.com/xyock/lock#readme','_blank','noopener');
- });
- document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!trigger.contains(e.target))close();});
- document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
-})();
-</script>
+
 </body>
 </html>
