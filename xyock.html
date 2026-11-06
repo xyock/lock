@@ -1059,6 +1059,15 @@
       addAIMessage("로그아웃했습니다.", "success");
     }
 
+    function showModal(id) {
+      // 한 번에 하나의 모달만 표시해 이전 창이 클릭을 가로채거나 내용이 겹치지 않게 합니다.
+      document.querySelectorAll(".modal.show").forEach(modal => {
+        if (modal.id !== id) modal.classList.remove("show");
+      });
+      const target = document.getElementById(id);
+      if (target) target.classList.add("show");
+    }
+
     function openLoginModal() {
       lastActivity = Date.now();
 
@@ -1070,7 +1079,7 @@
       document.getElementById("loginEmail").value = "";
       document.getElementById("loginPassword").value = "";
       document.getElementById("loginError").textContent = "";
-      document.getElementById("loginModal").classList.add("show");
+      showModal("loginModal");
 
       setTimeout(() => document.getElementById("loginEmail").focus(), 100);
     }
@@ -1143,7 +1152,7 @@
 
     function openModelModal() {
       updateModelOptions();
-      document.getElementById("modelModal").classList.add("show");
+      showModal("modelModal");
     }
 
     function closeModelModal() {
@@ -1773,7 +1782,7 @@ int main() {
     async function openHistoryModal() {
       const modal = document.getElementById("historyModal");
       const list = document.getElementById("historyList");
-      modal.classList.add("show");
+      showModal("historyModal");
       list.replaceChildren();
       if (!session?.user_id || !await ensureSession()) {
         list.textContent = "다른 기기에서 대화 기록을 보려면 먼저 로그인해 주세요.";
@@ -2228,7 +2237,7 @@ int main() {
       sendBtn.addEventListener("click", sendMessage);
 
       document.getElementById("pluginBtn").addEventListener("click", () => {
-        document.getElementById("pluginModal").classList.add("show");
+        showModal("pluginModal");
         refreshGitHubActions();
       });
       document.getElementById("ghActionType").addEventListener("change", updateGitHubActionFields);
