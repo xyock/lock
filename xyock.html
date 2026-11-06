@@ -50,7 +50,7 @@
       position: sticky;
       top: 0;
       background: var(--bg);
-      z-index: 5000;
+      z-index: 99999;
       isolation: isolate;
     }
 
@@ -431,7 +431,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.75);
-      z-index: 6000;
+      z-index: 100000;
       justify-content: center;
       align-items: center;
       padding: 16px;
@@ -611,8 +611,8 @@
     <div class="header-icons">
       <span class="mode-indicator" id="modeIndicator">xyock</span>
       <div class="auth-col">
-        <button class="icon-btn" id="historyBtn" type="button" title="대화 기록" aria-label="대화 기록">☰</button>
-        <button class="model-picker-btn" id="modelPickerBtn" type="button" title="AI 모델 선택" aria-label="AI 모델 선택"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 9.2 21.2 12 14.8 14.8 12 21.2 9.2 14.8 2.8 12 9.2 9.2Z"/><path d="M19 2.5 19.9 4.6 22 5.5 19.9 6.4 19 8.5 18.1 6.4 16 5.5 18.1 4.6Z"/></svg></button>
+        <button class="icon-btn" id="historyBtn" type="button" title="대화 기록" aria-label="대화 기록" onclick="openHistoryModal(); return false;">☰</button>
+        <button class="model-picker-btn" id="modelPickerBtn" type="button" title="AI 모델 선택" aria-label="AI 모델 선택" onclick="openModelModal(); return false;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 9.2 21.2 12 14.8 14.8 12 21.2 9.2 14.8 2.8 12 9.2 9.2Z"/><path d="M19 2.5 19.9 4.6 22 5.5 19.9 6.4 19 8.5 18.1 6.4 16 5.5 18.1 4.6Z"/></svg></button>
         <button class="login-btn" id="loginBtn" type="button">locked</button>
       </div>
     </div>
@@ -2269,16 +2269,7 @@ int main() {
 
       document.getElementById("loginBtn").onclick = openLoginModal;
       // 상단 버튼은 실제 버튼에 직접 이벤트를 연결합니다.
-      const historyButton = document.getElementById("historyBtn");
-      const modelButton = document.getElementById("modelPickerBtn");
-      historyButton.addEventListener("click", event => {
-        event.preventDefault();
-        openHistoryModal();
-      });
-      modelButton.addEventListener("click", event => {
-        event.preventDefault();
-        openModelModal();
-      });
+      // 헤더 버튼은 HTML onclick 속성에서 직접 실행하므로 여기서 중복 등록하지 않습니다.
       document.getElementById("historyCloseBtn").onclick = () => document.getElementById("historyModal").classList.remove("show");
       document.getElementById("newChatBtn").onclick = startNewConversation;
       document.getElementById("modelModalClose").addEventListener("click", closeModelModal);
