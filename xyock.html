@@ -600,6 +600,131 @@
       .modal-content { padding: 28px 20px; }
     }
   </style>
+
+  <style id="xy-beta-header-style">
+    /* Match beta-xyock header layout and button appearance only. */
+    header {
+      position: sticky !important;
+      top: 0 !important;
+      bottom: auto !important;
+      display: grid !important;
+      grid-template-columns: max-content 44px minmax(0, 1fr) auto !important;
+      align-items: center !important;
+      justify-items: stretch !important;
+      gap: 10px !important;
+      width: 100% !important;
+      height: 68px !important;
+      padding: 0 16px !important;
+      overflow: visible !important;
+      background: rgba(3, 5, 5, .96) !important;
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid #1c3935 !important;
+      z-index: 7000 !important;
+    }
+    .logo {
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      position: static !important;
+      justify-self: start !important;
+      gap: 8px !important;
+      font-size: 25px !important;
+      font-weight: 800 !important;
+      letter-spacing: 0 !important;
+    }
+    .logo .logo-img {
+      width: 34px !important;
+      height: 34px !important;
+      max-width: 34px !important;
+      max-height: 34px !important;
+    }
+    .header-icons, .auth-col { display: contents !important; }
+    #modeIndicator { display: none !important; }
+    #historyBtn {
+      grid-column: 2 !important;
+      grid-row: 1 !important;
+      justify-self: center !important;
+      position: static !important;
+      width: 44px !important;
+      height: 40px !important;
+      padding: 0 !important;
+      border: 1px solid #29312f !important;
+      border-radius: 11px !important;
+      background: #101414 !important;
+      color: #e9f0ee !important;
+      font-size: 20px !important;
+      font-weight: 650 !important;
+    }
+    #modelPickerBtn {
+      grid-column: 3 !important;
+      grid-row: 1 !important;
+      justify-self: start !important;
+      position: static !important;
+      width: 44px !important;
+      height: 40px !important;
+      flex: 0 0 44px !important;
+      padding: 0 !important;
+      border: 1px solid #29312f !important;
+      border-radius: 11px !important;
+      background: #101414 !important;
+      color: #e9f0ee !important;
+      display: grid !important;
+      place-items: center !important;
+    }
+    #modelPickerBtn svg { width: 23px !important; height: 23px !important; }
+    #modelPickerBtn svg path { fill: currentColor !important; }
+    #historyBtn:hover, #modelPickerBtn:hover {
+      border-color: #55dbc4 !important;
+      color: #55dbc4 !important;
+    }
+    #loginBtn {
+      grid-column: 4 !important;
+      grid-row: 1 !important;
+      position: static !important;
+      inset: auto !important;
+      transform: none !important;
+      float: none !important;
+      justify-self: end !important;
+      align-self: center !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: auto !important;
+      min-width: 76px !important;
+      height: 40px !important;
+      margin: 0 !important;
+      padding: 0 16px !important;
+      white-space: nowrap !important;
+      font-size: 14px !important;
+      line-height: 1 !important;
+      font-weight: 800 !important;
+      border: 1px solid #55dbc4 !important;
+      border-radius: 999px !important;
+      background: #55dbc4 !important;
+      color: #04110e !important;
+      box-shadow: 0 5px 24px #20dfca30 !important;
+      z-index: 2 !important;
+    }
+    #loginBtn::before, #loginBtn::after { content: none !important; display: none !important; }
+    @media (max-width: 480px) {
+      header {
+        grid-template-columns: max-content 38px minmax(0, 1fr) auto !important;
+        gap: 6px !important;
+        padding: 0 10px !important;
+        height: 62px !important;
+      }
+      .logo { font-size: 20px !important; }
+      .logo .logo-img {
+        width: 30px !important;
+        height: 30px !important;
+        max-width: 30px !important;
+        max-height: 30px !important;
+      }
+      #historyBtn { width: 38px !important; min-width: 36px !important; height: 36px !important; font-size: 18px !important; }
+      #modelPickerBtn { width: 38px !important; height: 36px !important; flex-basis: 38px !important; }
+      #loginBtn { min-width: 65px !important; height: 36px !important; padding: 0 11px !important; font-size: 12px !important; }
+    }
+  </style>
+
 </head>
 
 <body>
