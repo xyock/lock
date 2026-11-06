@@ -742,6 +742,21 @@
 body.xy-light{color-scheme:light;background:#f4f7f6!important;color:#15201c!important}body.xy-light header{background:#fff!important;border-color:#d6dfdc!important}body.xy-light .xy-screen{background:#f4f7f6;color:#15201c}body.xy-light .xy-screen-title,body.xy-light .xy-menu-link,body.xy-light .xy-menu-footer button{color:#15201c}body.xy-light .xy-menu-link{border-color:#d6dfdc}body.xy-light .xy-close,body.xy-light .xy-menu-footer button,body.xy-light .xy-setting-row button,body.xy-light .xy-setting-panel button{background:#fff;color:#26332e;border-color:#d6dfdc}body.xy-light .xy-setting-panel{color:#52615a}body.xy-light .xy-setting-panel input{background:#fff;color:#15201c;border-color:#ccd7d2}body.xy-light .welcome h1{color:#15201c!important}body.xy-light .welcome p{color:#64736d!important}body.xy-light .input-section{background:linear-gradient(180deg,transparent,#f4f7f6 32%)!important}body.xy-light .input-wrapper{background:#fff!important;border-color:#d0dbd6!important}body.xy-light .search-input{color:#15201c!important}body.xy-light .message.user .bubble{background:#e2f3ee;color:#15201c;border-color:#c5e6dc}body.xy-light .message.ai .bubble{color:#26332e}body.xy-light .code-card{background:#fff!important;border-color:#d6dfdc!important}body.xy-light .code-card-header{background:#edf2f0!important}body.xy-light .modal-content{background:#fff!important;color:#15201c!important}
 @media(max-width:620px){.xy-menu-list,.xy-settings{margin-top:6vh}.xy-menu-link{padding:21px 4px}.xy-setting-row{font-size:18px}.xy-menu-footer{margin-top:8vh}}
 </style>
+
+<style id="xy-beta-entry-style">
+#xyEntryScreen{position:fixed;inset:0;z-index:60000;display:flex;flex-direction:column;align-items:center;overflow:auto;padding:28px 24px 18px;background:#030505;color:#f7fffd}
+#xyEntryScreen[hidden]{display:none!important}
+.xy-entry-brand{width:100%;max-width:620px;display:flex;justify-content:space-between;align-items:center;font-size:clamp(32px,8vw,52px);font-style:italic;font-weight:900;letter-spacing:1px}
+.xy-entry-brand img{width:48px;height:48px;object-fit:contain}
+.xy-entry-planet{width:min(72vw,300px);aspect-ratio:1.12;margin:clamp(38px,8vh,80px) auto 0;border:5px solid #20dfca;border-radius:44% 52% 47% 45%;background:#000;color:#20dfca;font-size:clamp(25px,6vw,36px);font-weight:900;font-style:italic;display:grid;place-items:center;transform:rotate(-5deg);cursor:pointer}
+.xy-entry-planet span{transform:rotate(5deg)}
+.xy-entry-tagline{font-size:clamp(28px,7vw,43px);font-style:italic;font-weight:900;line-height:1.4;margin:clamp(32px,7vh,70px) 0 0;align-self:flex-start;width:min(100%,620px)}
+.xy-entry-auth{display:grid;gap:10px;width:min(100%,390px);margin:clamp(35px,8vh,75px) auto 18px}
+.xy-entry-auth button{border:0;background:transparent;color:#20dfca;font-size:clamp(18px,4.5vw,25px);font-weight:800;padding:8px 3px;cursor:pointer}
+.xy-entry-before{margin-top:auto;padding:12px 18px;border:1px solid #20dfca;border-radius:999px;background:transparent;color:#20dfca;font:inherit;cursor:pointer}
+body.xy-entry-open{overflow:hidden!important}
+@media(max-width:480px){#xyEntryScreen{padding:22px 18px 14px}.xy-entry-brand img{width:38px;height:38px}}
+</style>
 </head>
 
 <body>
@@ -1469,6 +1484,33 @@ public class HTMLTest {
  function renderCodes(){const root=$("xyCodeList");if(!root)return;root.replaceChildren();const a=list();if(!a.length){root.textContent="아직 저장된 코드가 없습니다.";return}a.slice().reverse().forEach(v=>{const card=document.createElement("article"),b=document.createElement("b"),pre=document.createElement("pre"),copy=document.createElement("button");card.className="xy-code-entry";b.textContent=(v.lang||"code")+" · "+new Date(v.time).toLocaleString();pre.textContent=v.code||"";copy.type="button";copy.textContent="복사";copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(v.code||"");copy.textContent="복사됨"}catch{copy.textContent="복사 실패"}});card.append(b,pre,copy);root.append(card)})}
  function collect(){document.querySelectorAll("#chat .code-card").forEach(card=>{const code=card.querySelector("pre code");if(!code?.textContent.trim()||card.dataset.xySaved)return;const a=list();a.push({lang:card.querySelector(".code-card-language")?.textContent||"code",code:code.textContent,time:Date.now()});set(K.codes,JSON.stringify(a.slice(-100)));card.dataset.xySaved="1"})}
  if($("chat")&&window.MutationObserver)new MutationObserver(collect).observe($("chat"),{childList:true,subtree:true,characterData:true});setTheme(get(K.theme,"dark"));applyLanguage();gate();
+})();
+</script>
+
+<section id="xyEntryScreen" aria-label="XYOCK 시작 화면">
+ <div class="xy-entry-brand"><img src="https://raw.githubusercontent.com/xyock/lock/main/logo.png" alt="XYOCK 로고"><span>XYOCK</span></div>
+ <button class="xy-entry-planet" id="xyEntryPlanet" type="button" aria-label="XYOCK 시작하기"><span>XYOCK</span></button>
+ <div class="xy-entry-tagline">for good and<br>coding</div>
+ <div class="xy-entry-auth" aria-label="Sign in 방법">
+  <button type="button" data-entry-provider="github">Continue with GitHub</button>
+  <button type="button" data-entry-provider="naver">Continue with Naver</button>
+  <button type="button" data-entry-provider="google">Continue with Google</button>
+ </div>
+ <button type="button" class="xy-entry-before" id="xyEntryContinue">Sign in 없이 둘러보기</button>
+</section>
+
+<script id="xy-beta-entry-controller">
+(()=>{const screen=document.getElementById("xyEntryScreen");if(!screen)return;
+ const enter=()=>{screen.hidden=true;screen.style.display="none";document.body.classList.remove("xy-entry-open");};
+ document.body.classList.add("xy-entry-open");
+ document.getElementById("xyEntryContinue")?.addEventListener("click",enter);
+ document.getElementById("xyEntryPlanet")?.addEventListener("click",enter);
+ screen.querySelectorAll("[data-entry-provider]").forEach(button=>button.addEventListener("click",()=>{
+  const provider=button.dataset.entryProvider;enter();
+  if(provider==="naver"){const notice=document.getElementById("naverLoginNotice");if(notice)notice.textContent="네이버 로그인은 별도 OAuth 설정이 완료된 뒤 사용할 수 있습니다.";document.getElementById("loginBtn")?.click();return;}
+  document.getElementById(provider+"Login")?.click();
+ }));
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!screen.hidden)enter();});
 })();
 </script>
 </body></html>";
