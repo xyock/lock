@@ -608,7 +608,7 @@
       top: 0 !important;
       bottom: auto !important;
       display: grid !important;
-      grid-template-columns: max-content 44px minmax(0, 1fr) auto !important;
+      grid-template-columns: max-content 44px 44px 44px auto !important;
       align-items: center !important;
       justify-items: stretch !important;
       gap: 10px !important;
@@ -676,6 +676,14 @@
       border-color: #55dbc4 !important;
       color: #55dbc4 !important;
     }
+    #xyMenuOpen {
+      grid-column: 4 !important; grid-row: 1 !important; justify-self: center !important;
+      position: static !important; width: 44px !important; height: 40px !important;
+      padding: 0 !important; border: 1px solid #29312f !important; border-radius: 11px !important;
+      background: #101414 !important; color: #e9f0ee !important; display: grid !important;
+      place-items: center !important; font-size: 20px !important; cursor: pointer !important;
+    }
+    #xyMenuOpen:hover { border-color: #55dbc4 !important; color: #55dbc4 !important; }
     #loginBtn {
       grid-column: 4 !important;
       grid-row: 1 !important;
@@ -707,7 +715,7 @@
     #loginBtn::before, #loginBtn::after { content: none !important; display: none !important; }
     @media (max-width: 480px) {
       header {
-        grid-template-columns: max-content 38px minmax(0, 1fr) auto !important;
+        grid-template-columns: max-content 38px 38px 38px auto !important;
         gap: 6px !important;
         padding: 0 10px !important;
         height: 62px !important;
@@ -721,6 +729,7 @@
       }
       #historyBtn { width: 38px !important; min-width: 36px !important; height: 36px !important; font-size: 18px !important; }
       #modelPickerBtn { width: 38px !important; height: 36px !important; flex-basis: 38px !important; }
+      #xyMenuOpen { width: 38px !important; height: 36px !important; font-size: 18px !important; }
       #loginBtn { min-width: 65px !important; height: 36px !important; padding: 0 11px !important; font-size: 12px !important; }
     }
   </style>
@@ -736,11 +745,15 @@
 </style>
 
 <style id="xy-beta-settings-style">
-.xy-screen{position:fixed;inset:0;z-index:1600;display:none;overflow:auto;background:#070909;color:#f5f7f6;padding:clamp(20px,5vw,52px)}.xy-screen.open{display:block}.xy-screen-head{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:900px;margin:0 auto}.xy-screen-title{font-size:clamp(30px,6vw,52px);font-weight:850}.xy-close{border:1px solid #303b38;background:#111716;color:#fff;border-radius:12px;padding:11px 15px;font-weight:700;cursor:pointer}
-.xy-menu-list,.xy-settings{max-width:900px;margin:8vh auto 0}.xy-menu-link{width:100%;display:flex;justify-content:space-between;padding:25px 6px;background:transparent;border:0;border-bottom:1px solid #28302e;color:#f3f6f5;font-size:clamp(22px,4vw,34px);font-weight:750;cursor:pointer}.xy-menu-footer{max-width:900px;margin:12vh auto 0;display:flex;justify-content:space-between;gap:12px}.xy-menu-footer button,.xy-setting-row button,.xy-setting-panel button{border:1px solid #38423f;background:#121817;color:#f4f7f5;border-radius:10px;padding:11px 14px;cursor:pointer}.xy-setting-row{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:24px 4px;border-bottom:1px solid #29312f;font-size:clamp(18px,3.4vw,25px);font-weight:700}.xy-setting-row button.active,.xy-setting-panel button.xy-primary{border-color:var(--accent);background:#14312c;color:var(--accent)}.xy-setting-panel{padding:18px 4px 24px;border-bottom:1px solid #29312f;color:#b9c3bf}.xy-setting-panel p{margin:0 0 12px;line-height:1.6}.xy-setting-panel input{display:block;width:min(460px,100%);padding:13px 14px;border:1px solid #38423f;border-radius:10px;background:#0e1312;color:#fff;font-size:16px;margin:8px 0}.xy-setting-panel a{color:var(--accent)}
+.xy-screen{position:fixed;inset:0;z-index:1600;display:none;overflow:auto;background:#070909;color:#f5f7f6;padding:clamp(20px,5vw,52px)}
+#xyMenu.xy-screen{inset:0 auto 0 0;width:min(56.7vw,390px);min-width:300px;height:100dvh;padding:26px 22px;background:#0b0f0e;border-right:1px solid #26332f;box-shadow:24px 0 70px #0008;transform:translateX(-105%);transition:transform .26s cubic-bezier(.2,.8,.2,1);display:block;visibility:hidden;z-index:9000}
+#xyMenu.xy-screen.open{transform:translateX(0);visibility:visible}
+#xyMenu.xy-screen::after{content:"";position:fixed;z-index:-1;top:0;left:100%;width:100vw;height:100dvh;background:#0008;pointer-events:none}
+.xy-screen.open:not(#xyMenu){display:block}.xy-screen-head{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:900px;margin:0 auto}#xyMenu .xy-screen-head{margin:0 0 28px}#xyMenu .xy-screen-title{font-size:27px;letter-spacing:-.7px}.xy-screen-title{font-size:clamp(30px,6vw,52px);font-weight:850}.xy-close{border:1px solid #303b38;background:#111716;color:#fff;border-radius:12px;padding:11px 15px;font-weight:700;cursor:pointer}
+.xy-menu-list,.xy-settings{max-width:900px;margin:8vh auto 0}#xyMenu .xy-menu-list{margin:0}#xyMenu .xy-menu-link{font-size:17px;font-weight:600;padding:17px 5px;letter-spacing:-.2px}#xyMenu .xy-menu-footer{margin:28px 0 0;display:grid;gap:10px}#xyMenu .xy-menu-footer button{width:100%;text-align:left;font-size:15px;padding:14px 15px}.xy-menu-link{width:100%;display:flex;justify-content:space-between;padding:25px 6px;background:transparent;border:0;border-bottom:1px solid #28302e;color:#f3f6f5;font-size:clamp(22px,4vw,34px);font-weight:750;cursor:pointer}.xy-menu-footer{max-width:900px;margin:12vh auto 0;display:flex;justify-content:space-between;gap:12px}.xy-menu-footer button,.xy-setting-row button,.xy-setting-panel button{border:1px solid #38423f;background:#121817;color:#f4f7f5;border-radius:10px;padding:11px 14px;cursor:pointer}.xy-setting-row{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:24px 4px;border-bottom:1px solid #29312f;font-size:clamp(18px,3.4vw,25px);font-weight:700}.xy-setting-row button.active,.xy-setting-panel button.xy-primary{border-color:var(--accent);background:#14312c;color:var(--accent)}.xy-setting-panel{padding:18px 4px 24px;border-bottom:1px solid #29312f;color:#b9c3bf}.xy-setting-panel p{margin:0 0 12px;line-height:1.6}.xy-setting-panel input{display:block;width:min(460px,100%);padding:13px 14px;border:1px solid #38423f;border-radius:10px;background:#0e1312;color:#fff;font-size:16px;margin:8px 0}.xy-setting-panel a{color:var(--accent)}
 .xy-gate{position:fixed;inset:0;z-index:5000;background:#050606;display:none;align-items:center;justify-content:center;padding:22px}.xy-gate.open{display:flex}.xy-gate-card{width:min(420px,100%);padding:30px;border:1px solid #34413d;border-radius:20px;background:#101615;color:#fff}.xy-gate-card input{width:100%;padding:13px;background:#080c0b;color:#fff;border:1px solid #394641;border-radius:10px;margin:10px 0}.xy-code-entry{border:1px solid #293532;border-radius:14px;background:#111716;padding:16px;margin:12px 0}.xy-code-entry pre{white-space:pre-wrap;overflow:auto;max-height:260px;font-size:12px}
 body.xy-light{color-scheme:light;background:#f4f7f6!important;color:#15201c!important}body.xy-light header{background:#fff!important;border-color:#d6dfdc!important}body.xy-light .xy-screen{background:#f4f7f6;color:#15201c}body.xy-light .xy-screen-title,body.xy-light .xy-menu-link,body.xy-light .xy-menu-footer button{color:#15201c}body.xy-light .xy-menu-link{border-color:#d6dfdc}body.xy-light .xy-close,body.xy-light .xy-menu-footer button,body.xy-light .xy-setting-row button,body.xy-light .xy-setting-panel button{background:#fff;color:#26332e;border-color:#d6dfdc}body.xy-light .xy-setting-panel{color:#52615a}body.xy-light .xy-setting-panel input{background:#fff;color:#15201c;border-color:#ccd7d2}body.xy-light .welcome h1{color:#15201c!important}body.xy-light .welcome p{color:#64736d!important}body.xy-light .input-section{background:linear-gradient(180deg,transparent,#f4f7f6 32%)!important}body.xy-light .input-wrapper{background:#fff!important;border-color:#d0dbd6!important}body.xy-light .search-input{color:#15201c!important}body.xy-light .message.user .bubble{background:#e2f3ee;color:#15201c;border-color:#c5e6dc}body.xy-light .message.ai .bubble{color:#26332e}body.xy-light .code-card{background:#fff!important;border-color:#d6dfdc!important}body.xy-light .code-card-header{background:#edf2f0!important}body.xy-light .modal-content{background:#fff!important;color:#15201c!important}
-@media(max-width:620px){.xy-menu-list,.xy-settings{margin-top:6vh}.xy-menu-link{padding:21px 4px}.xy-setting-row{font-size:18px}.xy-menu-footer{margin-top:8vh}}
+@media(max-width:620px){#xyMenu.xy-screen{width:min(78vw,360px);min-width:270px;padding:22px 18px}.xy-menu-list,.xy-settings{margin-top:6vh}.xy-menu-link{padding:21px 4px}.xy-setting-row{font-size:18px}.xy-menu-footer{margin-top:8vh}}
 </style>
 
 <style id="xy-beta-entry-style">
@@ -757,6 +770,12 @@ body.xy-light{color-scheme:light;background:#f4f7f6!important;color:#15201c!impo
 body.xy-entry-open{overflow:hidden!important}
 @media(max-width:480px){#xyEntryScreen{padding:22px 18px 14px}.xy-entry-brand img{width:38px;height:38px}}
 </style>
+<style id="xy-modern-typography">
+:root,html,body,button,input,textarea,select{font-family:Inter,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;letter-spacing:-.018em}
+body{font-feature-settings:"ss01" on,"cv11" on}
+button,input,textarea,select{font-weight:500}
+h1,h2,h3,.logo,.xy-screen-title,.xy-menu-link{letter-spacing:-.035em}
+</style>
 </head>
 
 <body>
@@ -768,9 +787,9 @@ body.xy-entry-open{overflow:hidden!important}
     <div class="header-icons">
       <span class="mode-indicator" id="modeIndicator">xyock</span>
       <div class="auth-col">
-        <button class="icon-btn xy-menu-trigger" id="xyMenuOpen" type="button" aria-label="메뉴 열기" title="메뉴">☰</button>
         <button class="icon-btn" id="historyBtn" type="button" title="대화 기록" aria-label="대화 기록" onclick="openHistoryModal(); return false;">☰</button>
         <button class="model-picker-btn" id="modelPickerBtn" type="button" title="AI 모델 선택" aria-label="AI 모델 선택" onclick="openModelModal(); return false;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 9.2 21.2 12 14.8 14.8 12 21.2 9.2 14.8 2.8 12 9.2 9.2Z"/><path d="M19 2.5 19.9 4.6 22 5.5 19.9 6.4 19 8.5 18.1 6.4 16 5.5 18.1 4.6Z"/></svg></button>
+        <button class="icon-btn xy-menu-trigger" id="xyMenuOpen" type="button" aria-label="메뉴 열기" title="메뉴">☰</button>
         <button class="login-btn" id="loginBtn" type="button">locked</button>
       </div>
     </div>
