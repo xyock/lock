@@ -1463,57 +1463,7 @@ console.log(arr.sort((a, b) => a - b));`,
           html: `import java.net.http.*;
 public class HTMLTest {
   public static void main(String[] args) {
-    String html = "<html><body><h1>Hello from Java</h1>
-<script id="xy-beta-settings-controller">
-(() => {
- const $=id=>document.getElementById(id),K={nick:"xyock_beta_nickname_v2",theme:"xyock_beta_theme_v2",lang:"xyock_beta_language_v2",pass:"xyock_beta_password_v2",codes:"xyock_beta_code_history_v2"};
- const get=(k,d="")=>{try{return localStorage.getItem(k)||d}catch{return d}},set=(k,v)=>{try{localStorage.setItem(k,v)}catch{}};
- const words={ko:{menu:"메뉴",plugins:"플러그인",sessions:"세션",account:"계정 설정",newchat:"새 대화",welcome:"무엇을 도와드릴까요?",sub:"무엇이든 질문하거나 코드를 작성해 보세요."},en:{menu:"Menu",plugins:"Plugins",sessions:"Sessions",account:"Account settings",newchat:"New chat",welcome:"How can I help?",sub:"Ask anything or get help writing code."}};
- const lang=()=>get(K.lang,"ko")==="en"?"en":"ko",closeScreens=()=>["xyMenu","xyAccount","xyCodes"].forEach(id=>$(id)?.classList.remove("open")),openScreen=id=>{closeScreens();$(id)?.classList.add("open")};
- function applyLanguage(){const d=words[lang()];document.querySelectorAll("[data-i18n]").forEach(el=>{if(d[el.dataset.i18n])el.textContent=d[el.dataset.i18n]});const w=$("welcome"),name=get(K.nick).trim();if(w){const h=w.querySelector("h1"),p=w.querySelector("p");if(h)h.textContent=name?(lang()==="ko"?"환영합니다, "+name+"!":"Welcome, "+name+"!"):d.welcome;if(p)p.textContent=d.sub}if($("searchInput"))$("searchInput").placeholder=lang()==="ko"?"질문하거나 코드를 요청하세요...":"Ask a question or request code...";document.querySelectorAll("[data-xy-lang]").forEach(b=>b.classList.toggle("active",b.dataset.xyLang===lang()))}
- function setTheme(v){set(K.theme,v);document.body.classList.toggle("xy-light",v==="light");document.querySelectorAll("[data-xy-theme]").forEach(b=>b.classList.toggle("active",b.dataset.xyTheme===v))}
- document.addEventListener("click",e=>{const close=e.target.closest("[data-xy-close]");if(close){closeScreens();return}const a=e.target.closest("[data-xy-go]");if(!a)return;switch(a.dataset.xyGo){case"readme":window.open("https://github.com/xyock/lock#readme","_blank","noopener");break;case"plugins":openScreen("xyAccount");$("xyOpenPlugins")?.scrollIntoView({behavior:"smooth",block:"center"});break;case"account":openScreen("xyAccount");break;case"codes":openScreen("xyCodes");renderCodes();break;case"sessions":closeScreens();$("historyBtn")?.click();break;case"newchat":closeScreens();$("newChatBtn")?.click();break}});
- $("xyMenuOpen")?.addEventListener("click",()=>openScreen("xyMenu"));$("xyOpenPlugins")?.addEventListener("click",()=>$("pluginBtn")?.click());
- document.querySelectorAll("[data-xy-theme]").forEach(b=>b.addEventListener("click",()=>setTheme(b.dataset.xyTheme)));document.querySelectorAll("[data-xy-lang]").forEach(b=>b.addEventListener("click",()=>{set(K.lang,b.dataset.xyLang);applyLanguage()}));
- $("xySaveNickname")?.addEventListener("click",()=>{set(K.nick,($("xyNickname")?.value||"").trim());applyLanguage();alert(lang()==="ko"?"닉네임을 저장했습니다.":"Nickname saved.")});
- async function hash(p,s){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(p),"PBKDF2",false,["deriveBits"]),b=await crypto.subtle.deriveBits({name:"PBKDF2",salt:new TextEncoder().encode(s),iterations:120000,hash:"SHA-256"},k,256);return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("")}
- $("xyApplyPassword")?.addEventListener("click",async()=>{const p=$("xyPassword")?.value||"";if(p.length<4){alert("암호를 4자 이상 입력하세요.");return}try{const salt=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,"0")).join("");set(K.pass,JSON.stringify({salt,hash:await hash(p,salt)}));$("xyPassword").value="";alert("암호가 저장되었습니다.")}catch{alert("이 브라우저에서는 암호 설정을 지원하지 않습니다.")}});
- $("xyRemovePassword")?.addEventListener("click",()=>{try{localStorage.removeItem(K.pass)}catch{}alert("암호를 해제했습니다.")});
- async function gate(){let v;try{v=JSON.parse(get(K.pass))}catch{return}if(!v?.salt||!v?.hash)return;$("xyGate")?.classList.add("open");const verify=async()=>{try{if(await hash($("xyGateInput").value,v.salt)===v.hash){$("xyGate").classList.remove("open");$("xyGateInput").value="";$("xyGateError").textContent=""}else $("xyGateError").textContent="암호가 올바르지 않습니다."}catch{$("xyGateError").textContent="암호를 확인하지 못했습니다."}};$("xyGateSubmit")?.addEventListener("click",verify);$("xyGateInput")?.addEventListener("keydown",e=>{if(e.key==="Enter")verify()})}
- function list(){try{const v=JSON.parse(get(K.codes,"[]"));return Array.isArray(v)?v:[]}catch{return[]}}
- function renderCodes(){const root=$("xyCodeList");if(!root)return;root.replaceChildren();const a=list();if(!a.length){root.textContent="아직 저장된 코드가 없습니다.";return}a.slice().reverse().forEach(v=>{const card=document.createElement("article"),b=document.createElement("b"),pre=document.createElement("pre"),copy=document.createElement("button");card.className="xy-code-entry";b.textContent=(v.lang||"code")+" · "+new Date(v.time).toLocaleString();pre.textContent=v.code||"";copy.type="button";copy.textContent="복사";copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(v.code||"");copy.textContent="복사됨"}catch{copy.textContent="복사 실패"}});card.append(b,pre,copy);root.append(card)})}
- function collect(){document.querySelectorAll("#chat .code-card").forEach(card=>{const code=card.querySelector("pre code");if(!code?.textContent.trim()||card.dataset.xySaved)return;const a=list();a.push({lang:card.querySelector(".code-card-language")?.textContent||"code",code:code.textContent,time:Date.now()});set(K.codes,JSON.stringify(a.slice(-100)));card.dataset.xySaved="1"})}
- if($("chat")&&window.MutationObserver)new MutationObserver(collect).observe($("chat"),{childList:true,subtree:true,characterData:true});setTheme(get(K.theme,"dark"));applyLanguage();gate();
-})();
-</script>
-
-<section id="xyEntryScreen" aria-label="XYOCK 시작 화면">
- <div class="xy-entry-brand"><img src="https://raw.githubusercontent.com/xyock/lock/main/logo.png" alt="XYOCK 로고"><span>XYOCK</span></div>
- <button class="xy-entry-planet" id="xyEntryPlanet" type="button" aria-label="XYOCK 시작하기"><span>XYOCK</span></button>
- <div class="xy-entry-tagline">for good and<br>coding</div>
- <div class="xy-entry-auth" aria-label="Sign in 방법">
-  <button type="button" data-entry-provider="github">Continue with GitHub</button>
-  <button type="button" data-entry-provider="naver">Continue with Naver</button>
-  <button type="button" data-entry-provider="google">Continue with Google</button>
- </div>
- <button type="button" class="xy-entry-before" id="xyEntryContinue">Sign in 없이 둘러보기</button>
-</section>
-
-<script id="xy-beta-entry-controller">
-(()=>{const screen=document.getElementById("xyEntryScreen");if(!screen)return;
- const enter=()=>{screen.hidden=true;screen.style.display="none";document.body.classList.remove("xy-entry-open");};
- document.body.classList.add("xy-entry-open");
- document.getElementById("xyEntryContinue")?.addEventListener("click",enter);
- document.getElementById("xyEntryPlanet")?.addEventListener("click",enter);
- screen.querySelectorAll("[data-entry-provider]").forEach(button=>button.addEventListener("click",()=>{
-  const provider=button.dataset.entryProvider;enter();
-  if(provider==="naver"){const notice=document.getElementById("naverLoginNotice");if(notice)notice.textContent="네이버 로그인은 별도 OAuth 설정이 완료된 뒤 사용할 수 있습니다.";document.getElementById("loginBtn")?.click();return;}
-  document.getElementById(provider+"Login")?.click();
- }));
- document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!screen.hidden)enter();});
-})();
-</script>
-</body></html>";
+    String html = "<html><body><h1>Hello from Java</h1></body></html>";
     System.out.println(html);
   }
 }`
@@ -2591,5 +2541,53 @@ int main() {
     init();
   </script>
 
+<script id="xy-beta-settings-controller">
+(() => {
+ const $=id=>document.getElementById(id),K={nick:"xyock_beta_nickname_v2",theme:"xyock_beta_theme_v2",lang:"xyock_beta_language_v2",pass:"xyock_beta_password_v2",codes:"xyock_beta_code_history_v2"};
+ const get=(k,d="")=>{try{return localStorage.getItem(k)||d}catch{return d}},set=(k,v)=>{try{localStorage.setItem(k,v)}catch{}};
+ const words={ko:{menu:"메뉴",plugins:"플러그인",sessions:"세션",account:"계정 설정",newchat:"새 대화",welcome:"무엇을 도와드릴까요?",sub:"무엇이든 질문하거나 코드를 작성해 보세요."},en:{menu:"Menu",plugins:"Plugins",sessions:"Sessions",account:"Account settings",newchat:"New chat",welcome:"How can I help?",sub:"Ask anything or get help writing code."}};
+ const lang=()=>get(K.lang,"ko")==="en"?"en":"ko",closeScreens=()=>["xyMenu","xyAccount","xyCodes"].forEach(id=>$(id)?.classList.remove("open")),openScreen=id=>{closeScreens();$(id)?.classList.add("open")};
+ function applyLanguage(){const d=words[lang()];document.querySelectorAll("[data-i18n]").forEach(el=>{if(d[el.dataset.i18n])el.textContent=d[el.dataset.i18n]});const w=$("welcome"),name=get(K.nick).trim();if(w){const h=w.querySelector("h1"),p=w.querySelector("p");if(h)h.textContent=name?(lang()==="ko"?"환영합니다, "+name+"!":"Welcome, "+name+"!"):d.welcome;if(p)p.textContent=d.sub}if($("searchInput"))$("searchInput").placeholder=lang()==="ko"?"질문하거나 코드를 요청하세요...":"Ask a question or request code...";document.querySelectorAll("[data-xy-lang]").forEach(b=>b.classList.toggle("active",b.dataset.xyLang===lang()))}
+ function setTheme(v){set(K.theme,v);document.body.classList.toggle("xy-light",v==="light");document.querySelectorAll("[data-xy-theme]").forEach(b=>b.classList.toggle("active",b.dataset.xyTheme===v))}
+ document.addEventListener("click",e=>{const close=e.target.closest("[data-xy-close]");if(close){closeScreens();return}const a=e.target.closest("[data-xy-go]");if(!a)return;switch(a.dataset.xyGo){case"readme":window.open("https://github.com/xyock/lock#readme","_blank","noopener");break;case"plugins":openScreen("xyAccount");$("xyOpenPlugins")?.scrollIntoView({behavior:"smooth",block:"center"});break;case"account":openScreen("xyAccount");break;case"codes":openScreen("xyCodes");renderCodes();break;case"sessions":closeScreens();$("historyBtn")?.click();break;case"newchat":closeScreens();$("newChatBtn")?.click();break}});
+ $("xyMenuOpen")?.addEventListener("click",()=>openScreen("xyMenu"));$("xyOpenPlugins")?.addEventListener("click",()=>$("pluginBtn")?.click());
+ document.querySelectorAll("[data-xy-theme]").forEach(b=>b.addEventListener("click",()=>setTheme(b.dataset.xyTheme)));document.querySelectorAll("[data-xy-lang]").forEach(b=>b.addEventListener("click",()=>{set(K.lang,b.dataset.xyLang);applyLanguage()}));
+ $("xySaveNickname")?.addEventListener("click",()=>{set(K.nick,($("xyNickname")?.value||"").trim());applyLanguage();alert(lang()==="ko"?"닉네임을 저장했습니다.":"Nickname saved.")});
+ async function hash(p,s){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(p),"PBKDF2",false,["deriveBits"]),b=await crypto.subtle.deriveBits({name:"PBKDF2",salt:new TextEncoder().encode(s),iterations:120000,hash:"SHA-256"},k,256);return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("")}
+ $("xyApplyPassword")?.addEventListener("click",async()=>{const p=$("xyPassword")?.value||"";if(p.length<4){alert("암호를 4자 이상 입력하세요.");return}try{const salt=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,"0")).join("");set(K.pass,JSON.stringify({salt,hash:await hash(p,salt)}));$("xyPassword").value="";alert("암호가 저장되었습니다.")}catch{alert("이 브라우저에서는 암호 설정을 지원하지 않습니다.")}});
+ $("xyRemovePassword")?.addEventListener("click",()=>{try{localStorage.removeItem(K.pass)}catch{}alert("암호를 해제했습니다.")});
+ async function gate(){let v;try{v=JSON.parse(get(K.pass))}catch{return}if(!v?.salt||!v?.hash)return;$("xyGate")?.classList.add("open");const verify=async()=>{try{if(await hash($("xyGateInput").value,v.salt)===v.hash){$("xyGate").classList.remove("open");$("xyGateInput").value="";$("xyGateError").textContent=""}else $("xyGateError").textContent="암호가 올바르지 않습니다."}catch{$("xyGateError").textContent="암호를 확인하지 못했습니다."}};$("xyGateSubmit")?.addEventListener("click",verify);$("xyGateInput")?.addEventListener("keydown",e=>{if(e.key==="Enter")verify()})}
+ function list(){try{const v=JSON.parse(get(K.codes,"[]"));return Array.isArray(v)?v:[]}catch{return[]}}
+ function renderCodes(){const root=$("xyCodeList");if(!root)return;root.replaceChildren();const a=list();if(!a.length){root.textContent="아직 저장된 코드가 없습니다.";return}a.slice().reverse().forEach(v=>{const card=document.createElement("article"),b=document.createElement("b"),pre=document.createElement("pre"),copy=document.createElement("button");card.className="xy-code-entry";b.textContent=(v.lang||"code")+" · "+new Date(v.time).toLocaleString();pre.textContent=v.code||"";copy.type="button";copy.textContent="복사";copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(v.code||"");copy.textContent="복사됨"}catch{copy.textContent="복사 실패"}});card.append(b,pre,copy);root.append(card)})}
+ function collect(){document.querySelectorAll("#chat .code-card").forEach(card=>{const code=card.querySelector("pre code");if(!code?.textContent.trim()||card.dataset.xySaved)return;const a=list();a.push({lang:card.querySelector(".code-card-language")?.textContent||"code",code:code.textContent,time:Date.now()});set(K.codes,JSON.stringify(a.slice(-100)));card.dataset.xySaved="1"})}
+ if($("chat")&&window.MutationObserver)new MutationObserver(collect).observe($("chat"),{childList:true,subtree:true,characterData:true});setTheme(get(K.theme,"dark"));applyLanguage();gate();
+})();
+</script>
+<section id="xyEntryScreen" aria-label="XYOCK 시작 화면">
+ <div class="xy-entry-brand"><img src="https://raw.githubusercontent.com/xyock/lock/main/logo.png" alt="XYOCK 로고"><span>XYOCK</span></div>
+ <button class="xy-entry-planet" id="xyEntryPlanet" type="button" aria-label="XYOCK 시작하기"><span>XYOCK</span></button>
+ <div class="xy-entry-tagline">for good and<br>coding</div>
+ <div class="xy-entry-auth" aria-label="Sign in 방법">
+  <button type="button" data-entry-provider="github">Continue with GitHub</button>
+  <button type="button" data-entry-provider="naver">Continue with Naver</button>
+  <button type="button" data-entry-provider="google">Continue with Google</button>
+ </div>
+ <button type="button" class="xy-entry-before" id="xyEntryContinue">Sign in 없이 둘러보기</button>
+</section>
+
+<script id="xy-beta-entry-controller">
+(()=>{const screen=document.getElementById("xyEntryScreen");if(!screen)return;
+ const enter=()=>{screen.hidden=true;screen.style.display="none";document.body.classList.remove("xy-entry-open");};
+ document.body.classList.add("xy-entry-open");
+ document.getElementById("xyEntryContinue")?.addEventListener("click",enter);
+ document.getElementById("xyEntryPlanet")?.addEventListener("click",enter);
+ screen.querySelectorAll("[data-entry-provider]").forEach(button=>button.addEventListener("click",()=>{
+  const provider=button.dataset.entryProvider;enter();
+  if(provider==="naver"){const notice=document.getElementById("naverLoginNotice");if(notice)notice.textContent="네이버 로그인은 별도 OAuth 설정이 완료된 뒤 사용할 수 있습니다.";document.getElementById("loginBtn")?.click();return;}
+  document.getElementById(provider+"Login")?.click();
+ }));
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!screen.hidden)enter();});
+})();
+</script>
 </body>
 </html>
