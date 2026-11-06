@@ -2270,16 +2270,26 @@ int main() {
       // 메뉴바(☰)는 대화 기록, 반짝이 버튼은 모델 선택 창을 엽니다.
       const historyButton = document.getElementById("historyBtn");
       const modelButton = document.getElementById("modelPickerBtn");
-      historyButton.onclick = event => {
-        event.preventDefault();
-        event.stopPropagation();
-        openHistoryModal();
-      };
-      modelButton.onclick = event => {
-        event.preventDefault();
-        event.stopPropagation();
-        openModelModal();
-      };
+      // 상단 버튼이 다른 레이어에 가려져도 실제 버튼 영역 클릭을 감지하도록 문서 캡처 단계에서 처리합니다.
+      historyButton.onclick = null;
+      modelButton.onclick = null;
+      document.addEventListener("click", event => {
+        const x = event.clientX;
+        const y = event.clientY;
+        const inButton = button => {
+          const rect = button.getBoundingClientRect();
+          return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+        };
+        if (inButton(historyButton)) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          openHistoryModal();
+        } else if (inButton(modelButton)) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          openModelModal();
+        }
+      }, true);
       document.getElementById("historyCloseBtn").onclick = () => document.getElementById("historyModal").classList.remove("show");
       document.getElementById("newChatBtn").onclick = startNewConversation;
       document.getElementById("modelModalClose").addEventListener("click", closeModelModal);
