@@ -1,6 +1,6 @@
 <div align="center">
 
-# XYOCK
+# XYOCK(made with vibe coding)
 
 **A focused AI workspace for learning, writing, and building code.**
 
